@@ -16,6 +16,7 @@ internal class EventRepository : IEventRepository
         var event1 = Event.Create(new CreateEventParameter
         {
             Title = "Событие 1",
+            Description = null,
             StartAt = DateTime.Now.AddDays(1),
             EndAt = DateTime.Now.AddDays(1).AddHours(1),
         });

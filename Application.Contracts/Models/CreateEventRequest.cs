@@ -1,6 +1,6 @@
-namespace Domain.Events.Parameters;
+namespace Application.Contracts.Models;
 
-public readonly struct CreateEventParameter
+public sealed class CreateEventRequest
 {
     /// <summary>
     ///     Название события
@@ -10,7 +10,7 @@ public readonly struct CreateEventParameter
     /// <summary>
     ///     Описание события
     /// </summary>
-    public required string? Description { get; init; }
+    public string? Description { get; init; }
     
     /// <summary>
     ///     Начало события

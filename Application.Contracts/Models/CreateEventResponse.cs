@@ -1,7 +1,12 @@
-namespace Domain.Events.Parameters;
+namespace Application.Contracts.Models;
 
-public readonly struct CreateEventParameter
+public sealed class CreateEventResponse
 {
+    /// <summary>
+    ///     Идентификатор
+    /// </summary>
+    public required Guid Id { get; init; }
+    
     /// <summary>
     ///     Название события
     /// </summary>
@@ -10,7 +15,7 @@ public readonly struct CreateEventParameter
     /// <summary>
     ///     Описание события
     /// </summary>
-    public required string? Description { get; init; }
+    public string? Description { get; init; }
     
     /// <summary>
     ///     Начало события
