@@ -1,3 +1,4 @@
+using Application;
 using Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.AddApplication();
 builder.AddPersistence();
 
 var app = builder.Build();
