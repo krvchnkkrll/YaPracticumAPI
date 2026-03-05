@@ -3,6 +3,11 @@ namespace Domain.Events.Parameters;
 public readonly struct CreateEventParameter
 {
     /// <summary>
+    ///     Идентификатор
+    /// </summary>
+    public required Guid Id { get; init; }
+    
+    /// <summary>
     ///     Название события
     /// </summary>
     public required string Title { get; init; }

@@ -10,5 +10,6 @@ public static class DependencyInjection
     public static void AddPersistence(this IHostApplicationBuilder builder)
     {
         builder.Services.AddScoped<IEventRepository, EventRepository>();
+        builder.Services.AddSingleton<EventStorage>();
     }
 }

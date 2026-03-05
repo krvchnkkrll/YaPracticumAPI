@@ -4,48 +4,14 @@ using Persistence.Contracts.Repositories;
 
 namespace Persistence.Repositories;
 
-internal class EventRepository : IEventRepository
+internal class EventRepository(EventStorage eventStorage) : IEventRepository
 {
-    private readonly List<Event> _events = [];
-
-    /// <summary>
-    ///     Заполняем лист
-    /// </summary>
-    public EventRepository()
-    {
-        var event1 = Event.Create(new CreateEventParameter
-        {
-            Title = "Событие 1",
-            Description = null,
-            StartAt = DateTime.Now.AddDays(1),
-            EndAt = DateTime.Now.AddDays(1).AddHours(1),
-        });
-        
-        var event2 = Event.Create(new CreateEventParameter
-        {
-            Title = "Событие 2",
-            Description = "Описание события 2",
-            StartAt = DateTime.Now.AddDays(2),
-            EndAt = DateTime.Now.AddDays(2).AddHours(2),
-        });
-        
-        var event3 = Event.Create(new CreateEventParameter
-        {
-            Title = "Событие 3",
-            Description = "Описание события 3",
-            StartAt = DateTime.Now.AddDays(3),
-            EndAt = DateTime.Now.AddDays(3).AddHours(3)
-        });
-
-        _events.AddRange([event1, event2, event3]);
-    }
-
     /// <summary>
     ///     Получить событие по id
     /// </summary>
     public Event GetById(Guid eventId)
     {
-        var eventToReturn = _events.SingleOrDefault(e => e.Id == eventId);
+        var eventToReturn = eventStorage.Events.SingleOrDefault(e => e.Id == eventId);
         
         if (ReferenceEquals(eventToReturn, null))
             throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
@@ -59,7 +25,7 @@ internal class EventRepository : IEventRepository
     /// <returns></returns>
     public IEnumerable<Event> GetAllEvents()
     {
-        return _events.ToList();
+        return eventStorage.Events.ToList();
     }
 
     /// <summary>
@@ -69,7 +35,7 @@ internal class EventRepository : IEventRepository
     {
         var newEvent = Event.Create(parameter);
         
-        _events.Add(newEvent);
+        eventStorage.Events.Add(newEvent);
         
         return newEvent;
     }
@@ -91,6 +57,6 @@ internal class EventRepository : IEventRepository
     {
         var eventToRemove = GetById(eventId);
 
-        _events.Remove(eventToRemove);
+        eventStorage.Events.Remove(eventToRemove);
     }
 }

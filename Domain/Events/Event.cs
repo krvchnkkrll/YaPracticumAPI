@@ -15,6 +15,7 @@ public sealed class Event
             EndAt = parameter.EndAt,
         });
         
+        Id = parameter.Id;
         Title = parameter.Title;
         Description = parameter.Description;
         StartAt = parameter.StartAt;
@@ -24,7 +25,7 @@ public sealed class Event
     /// <summary>
     ///     Идентификатор
     /// </summary>
-    public Guid Id { get; private set; } = Guid.CreateVersion7();
+    public Guid Id { get; private set; }
 
     /// <summary>
     ///     Название события

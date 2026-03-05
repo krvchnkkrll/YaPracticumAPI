@@ -41,6 +41,7 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
     {
         var newEvent = eventRepository.Add(new CreateEventParameter
         {
+            Id = Guid.CreateVersion7(),
             Title = request.Title,
             Description = request.Description,
             StartAt = request.StartAt,
