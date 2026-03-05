@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers;
 
-[Route("api/[controller]")]
+[Route("api/events")]
 public sealed class EventController(IEventService eventService) : AppController
 {
     [HttpGet]
