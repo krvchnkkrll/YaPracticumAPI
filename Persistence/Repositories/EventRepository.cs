@@ -43,9 +43,14 @@ internal class EventRepository : IEventRepository
     /// <summary>
     ///     Получить событие по id
     /// </summary>
-    public Event? GetById(Guid eventId)
+    public Event GetById(Guid eventId)
     {
-        return _events.SingleOrDefault(e=> e.Id == eventId);
+        var eventToReturn = _events.SingleOrDefault(e => e.Id == eventId);
+        
+        if (ReferenceEquals(eventToReturn, null))
+            throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
+        
+        return eventToReturn;
     }
 
     /// <summary>
@@ -74,10 +79,7 @@ internal class EventRepository : IEventRepository
     /// </summary>
     public Event Update(Guid eventId, UpdateEventParameter parameter)
     {
-        var eventToUpdate = _events.SingleOrDefault(e=> e.Id == eventId);
-
-        if (ReferenceEquals(eventToUpdate, null))
-            throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
+        var eventToUpdate = GetById(eventId);
         
         return eventToUpdate.Update(parameter);
     }
@@ -85,12 +87,9 @@ internal class EventRepository : IEventRepository
     /// <summary>
     ///     Удалить событие
     /// </summary>
-    public void Delete(Guid id)
+    public void Delete(Guid eventId)
     {
-        var eventToRemove = _events.SingleOrDefault(e => e.Id == id);
-        
-        if (ReferenceEquals(eventToRemove, null))
-            throw new KeyNotFoundException($"Событие с ID {id} не найдено.");
+        var eventToRemove = GetById(eventId);
 
         _events.Remove(eventToRemove);
     }
