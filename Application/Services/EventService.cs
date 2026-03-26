@@ -58,24 +58,15 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
         };
     }
 
-    public UpdateEventResponse UpdateEvent(Guid eventId, UpdateEventRequest request)
+    public void UpdateEvent(Guid eventId, UpdateEventRequest request)
     {
-        var updatedEvent = eventRepository.Update(eventId, new UpdateEventParameter
+        eventRepository.Update(eventId, new UpdateEventParameter
         {
             Title = request.Title,
             Description = request.Description,
             StartAt = request.StartAt,
             EndAt = request.EndAt,
         });
-
-        return new UpdateEventResponse
-        {
-            Id = updatedEvent.Id,
-            Title = updatedEvent.Title,
-            Description = updatedEvent.Description,
-            StartAt = updatedEvent.StartAt,
-            EndAt = updatedEvent.EndAt
-        };
     }
 
     public void DeleteEvent(Guid eventId)

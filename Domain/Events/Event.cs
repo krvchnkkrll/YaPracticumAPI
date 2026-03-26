@@ -48,7 +48,7 @@ public sealed class Event
     public DateTime EndAt { get; private set; }
 
     /// <summary>
-    ///     Создать событь
+    ///     Создать событие
     /// </summary>
     public static Event Create(CreateEventParameter parameter) => new(parameter);
 

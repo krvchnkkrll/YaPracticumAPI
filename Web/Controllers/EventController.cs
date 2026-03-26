@@ -20,8 +20,6 @@ public sealed class EventController(IEventService eventService) : AppController
     /// <summary>
     ///     Получить событие
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(GetEventResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -33,13 +31,12 @@ public sealed class EventController(IEventService eventService) : AppController
     /// <summary>
     ///     Создать событие
     /// </summary>
-    /// <param name="createEventRequest"></param>
-    /// <returns></returns>
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    public ActionResult<GetEventResponse> Post([FromBody] CreateEventRequest createEventRequest)
+    [ProducesResponseType(typeof(CreateEventResponse), StatusCodes.Status201Created)]
+    public ActionResult<CreateEventResponse> Post([FromBody] CreateEventRequest createEventRequest)
     {
-        return Ok(eventService.CreateEvent(createEventRequest));
+        var result = eventService.CreateEvent(createEventRequest);
+        return CreatedAtAction(nameof(Get), new { id = result.Id }, result);
     }
     
     /// <summary>
@@ -50,7 +47,8 @@ public sealed class EventController(IEventService eventService) : AppController
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public ActionResult Put([FromRoute] Guid id, [FromBody] UpdateEventRequest updateEventRequest)
     {
-        return Ok(eventService.UpdateEvent(id, updateEventRequest));
+        eventService.UpdateEvent(id, updateEventRequest);
+        return NoContent();
     }
 
     /// <summary>
