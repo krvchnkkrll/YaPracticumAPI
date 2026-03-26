@@ -20,12 +20,9 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
         });
     }
 
-    public GetEventResponse? GetEvent(Guid eventId)
+    public GetEventResponse GetEvent(Guid eventId)
     {
         var eventToReturn = eventRepository.GetById(eventId);
-        
-        if (ReferenceEquals(eventToReturn, null))
-            return null;
         
         return new GetEventResponse
         {

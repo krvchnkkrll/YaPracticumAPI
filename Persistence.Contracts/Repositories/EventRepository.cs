@@ -8,7 +8,7 @@ public interface IEventRepository
     /// <summary>
     ///     Получить событие по id
     /// </summary>
-    Event? GetById(Guid eventId);
+    Event GetById(Guid eventId);
 
     /// <summary>
     ///     Получить все события
