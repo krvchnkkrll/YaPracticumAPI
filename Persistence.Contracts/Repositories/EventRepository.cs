@@ -23,7 +23,7 @@ public interface IEventRepository
     /// <summary>
     ///     Обновить событие
     /// </summary>
-    Event Update(Guid eventId, UpdateEventParameter parameter);
+    void Update(Guid eventId, UpdateEventParameter parameter);
 
     /// <summary>
     ///     Удалить событие

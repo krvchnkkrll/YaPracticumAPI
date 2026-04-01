@@ -43,11 +43,11 @@ internal class EventRepository(EventStorage eventStorage) : IEventRepository
     /// <summary>
     ///     Обновить событие
     /// </summary>
-    public Event Update(Guid eventId, UpdateEventParameter parameter)
+    public void Update(Guid eventId, UpdateEventParameter parameter)
     {
         var eventToUpdate = GetById(eventId);
         
-        return eventToUpdate.Update(parameter);
+        eventToUpdate.Update(parameter);
     }
 
     /// <summary>
