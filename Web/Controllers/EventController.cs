@@ -1,4 +1,5 @@
 using Application.Contracts.Models;
+using Application.Contracts.Models.GetEvents;
 using Application.Contracts.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,10 +12,10 @@ public sealed class EventController(IEventService eventService) : AppController
     ///     Получить все события
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<GetEventResponse>), StatusCodes.Status200OK)]
-    public ActionResult<IEnumerable<GetEventResponse>> Get()
+    [ProducesResponseType(typeof(GetEventsResponse), StatusCodes.Status200OK)]
+    public ActionResult<GetEventsResponse> Get(GetEventsSearchQuery searchQuery)
     {
-        return Ok(eventService.GetEvents());
+        return Ok(eventService.GetEvents(searchQuery));
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-namespace Application.Contracts.Models;
+namespace Application.Contracts.Models.GetEvents;
 
 public sealed class GetEventsResponse
 {

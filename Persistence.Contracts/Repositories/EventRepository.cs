@@ -1,3 +1,4 @@
+using Application.Contracts.Models.GetEvents;
 using Domain.Events;
 using Domain.Events.Parameters;
 
@@ -13,7 +14,7 @@ public interface IEventRepository
     /// <summary>
     ///     Получить все события
     /// </summary>
-    IEnumerable<Event> GetAllEvents();
+    IEnumerable<Event> GetAllEvents(GetEventsSearchQuery searchQuery);
 
     /// <summary>
     ///     Добавить событие

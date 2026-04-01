@@ -1,6 +1,6 @@
 using Application.Contracts.Models;
+using Application.Contracts.Models.GetEvents;
 using Application.Contracts.Services;
-using Domain.Events;
 using Domain.Events.Parameters;
 using Persistence.Contracts.Repositories;
 
@@ -8,16 +8,20 @@ namespace Application.Services;
 
 internal sealed class EventService(IEventRepository eventRepository) : IEventService
 {
-    public IEnumerable<GetEventResponse> GetEvents()
+    public GetEventsResponse GetEvents(GetEventsSearchQuery searchQuery)
     {
-        return eventRepository.GetAllEvents().Select(e => new GetEventResponse
+        return new GetEventsResponse
         {
-            Id = e.Id,
-            Title = e.Title,
-            Description = e.Description,
-            StartAt = e.StartAt,
-            EndAt = e.EndAt,
-        });
+            Events = eventRepository.GetAllEvents(searchQuery)
+                .Select(e => new GetEventResponse
+                {
+                    Id = e.Id,
+                    Title = e.Title,
+                    Description = e.Description,
+                    StartAt = e.StartAt,
+                    EndAt = e.EndAt
+                })
+        };
     }
 
     public GetEventResponse GetEvent(Guid eventId)

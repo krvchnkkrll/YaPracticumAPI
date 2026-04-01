@@ -1,3 +1,4 @@
+using Application.Contracts.Models.GetEvents;
 using Domain.Events;
 using Domain.Events.Parameters;
 using Persistence.Contracts.Repositories;
@@ -22,10 +23,26 @@ internal class EventRepository(EventStorage eventStorage) : IEventRepository
     /// <summary>
     ///     Получить все события
     /// </summary>
-    /// <returns></returns>
-    public IEnumerable<Event> GetAllEvents()
+    public IEnumerable<Event> GetAllEvents(GetEventsSearchQuery searchQuery)
     {
-        return eventStorage.Events.ToList();
+        var query = eventStorage.Events.AsQueryable();
+
+        if (!string.IsNullOrEmpty(searchQuery.Title))
+        {
+            query = query.Where(e => e.Title.Contains(searchQuery.Title, StringComparison.InvariantCultureIgnoreCase));
+        }
+
+        if (!searchQuery.From.HasValue)
+        {
+            query = query.Where(e => e.StartAt >= searchQuery.From);
+        }
+
+        if (!searchQuery.To.HasValue)
+        {
+            query = query.Where(e => e.EndAt <= searchQuery.To);
+        }
+        
+        return query.ToList();
     }
 
     /// <summary>

@@ -1,5 +1,5 @@
 using Application.Contracts.Models;
-using Domain.Events;
+using Application.Contracts.Models.GetEvents;
 
 namespace Application.Contracts.Services;
 
@@ -8,7 +8,7 @@ public interface IEventService
     /// <summary>
     ///     Получить все события
     /// </summary>
-    IEnumerable<GetEventResponse> GetEvents();
+    GetEventsResponse GetEvents(GetEventsSearchQuery searchQuery);
     
     /// <summary>
     ///     Получить событие
