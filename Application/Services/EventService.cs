@@ -1,26 +1,32 @@
 using Application.Contracts.Models;
-using Application.Contracts.Models.GetEvents;
 using Application.Contracts.Services;
 using Domain.Events.Parameters;
+using Domain.Models.Pagination;
 using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 
 internal sealed class EventService(IEventRepository eventRepository) : IEventService
 {
-    public GetEventsResponse GetEvents(GetEventsSearchQuery searchQuery)
+    public PaginatedResult<GetEventResponse> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery)
     {
-        return new GetEventsResponse
+        var paginatedEvents = eventRepository.GetPaginatedEvents(searchQuery, paginationQuery);
+
+        return new PaginatedResult<GetEventResponse>
         {
-            Events = eventRepository.GetAllEvents(searchQuery)
-                .Select(e => new GetEventResponse
-                {
-                    Id = e.Id,
-                    Title = e.Title,
-                    Description = e.Description,
-                    StartAt = e.StartAt,
-                    EndAt = e.EndAt
-                })
+            Items = paginatedEvents.Items.Select(e => new GetEventResponse
+            {
+                Id = e.Id,
+                Title = e.Title,
+                Description = e.Description,
+                StartAt = e.StartAt,
+                EndAt = e.EndAt
+            }).ToArray(),
+            TotalItems = paginatedEvents.TotalItems,
+            CurrentPage = paginatedEvents.CurrentPage,
+            TotalPage = paginatedEvents.TotalPage,
+            PageSize = paginatedEvents.PageSize,
+            TotalPages = paginatedEvents.TotalPages
         };
     }
 

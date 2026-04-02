@@ -1,5 +1,5 @@
 using Application.Contracts.Models;
-using Application.Contracts.Models.GetEvents;
+using Domain.Models.Pagination;
 
 namespace Application.Contracts.Services;
 
@@ -8,7 +8,7 @@ public interface IEventService
     /// <summary>
     ///     Получить все события
     /// </summary>
-    GetEventsResponse GetEvents(GetEventsSearchQuery searchQuery);
+    PaginatedResult<GetEventResponse> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery);
     
     /// <summary>
     ///     Получить событие

@@ -1,6 +1,7 @@
-using Application.Contracts.Models.GetEvents;
+using Application.Contracts.Models;
 using Domain.Events;
 using Domain.Events.Parameters;
+using Domain.Models.Pagination;
 
 namespace Persistence.Contracts.Repositories;
 
@@ -14,7 +15,7 @@ public interface IEventRepository
     /// <summary>
     ///     Получить все события
     /// </summary>
-    IEnumerable<Event> GetAllEvents(GetEventsSearchQuery searchQuery);
+    PaginatedResult<Event> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery);
 
     /// <summary>
     ///     Добавить событие

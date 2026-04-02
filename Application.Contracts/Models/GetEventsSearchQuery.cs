@@ -1,4 +1,4 @@
-namespace Application.Contracts.Models.GetEvents;
+namespace Application.Contracts.Models;
 
 public sealed class GetEventsSearchQuery
 {

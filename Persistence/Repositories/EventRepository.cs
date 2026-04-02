@@ -1,6 +1,7 @@
-using Application.Contracts.Models.GetEvents;
+using Application.Contracts.Models;
 using Domain.Events;
 using Domain.Events.Parameters;
+using Domain.Models.Pagination;
 using Persistence.Contracts.Repositories;
 
 namespace Persistence.Repositories;
@@ -23,26 +24,56 @@ internal class EventRepository(EventStorage eventStorage) : IEventRepository
     /// <summary>
     ///     Получить все события
     /// </summary>
-    public IEnumerable<Event> GetAllEvents(GetEventsSearchQuery searchQuery)
+    public PaginatedResult<Event> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery)
     {
         var query = eventStorage.Events.AsQueryable();
+
+        #region  Filters
 
         if (!string.IsNullOrEmpty(searchQuery.Title))
         {
             query = query.Where(e => e.Title.Contains(searchQuery.Title, StringComparison.InvariantCultureIgnoreCase));
         }
-
-        if (!searchQuery.From.HasValue)
+        if (searchQuery.From.HasValue)
         {
-            query = query.Where(e => e.StartAt >= searchQuery.From);
+            query = query.Where(e => e.StartAt >= searchQuery.From.Value);
+        }
+        if (searchQuery.To.HasValue)
+        {
+            query = query.Where(e => e.EndAt <= searchQuery.To.Value);
         }
 
-        if (!searchQuery.To.HasValue)
-        {
-            query = query.Where(e => e.EndAt <= searchQuery.To);
-        }
+        #endregion
+
+        #region Pagination
         
-        return query.ToList();
+        var totalItems = query.Count();
+        
+        var page = Math.Max(1, paginationQuery.Page);
+        var pageSize = Math.Max(1, paginationQuery.PageSize);
+        var totalPages = totalItems == 0 
+            ? 0 
+            : (int)Math.Ceiling(totalItems / (double)pageSize);
+        
+        var skip = (page - 1) * pageSize;
+        
+        var items = query
+            .OrderBy(e => e.Id)
+            .Skip(skip)
+            .Take(pageSize)
+            .ToArray();
+        
+        #endregion
+        
+        return new PaginatedResult<Event>
+        {
+            Items = items,
+            TotalItems = totalItems,
+            CurrentPage = page,
+            TotalPage = totalPages,
+            PageSize = pageSize,
+            TotalPages = totalPages
+        };
     }
 
     /// <summary>

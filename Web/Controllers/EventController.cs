@@ -1,6 +1,6 @@
 using Application.Contracts.Models;
-using Application.Contracts.Models.GetEvents;
 using Application.Contracts.Services;
+using Domain.Models.Pagination;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Controllers;
@@ -12,10 +12,10 @@ public sealed class EventController(IEventService eventService) : AppController
     ///     Получить все события
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(GetEventsResponse), StatusCodes.Status200OK)]
-    public ActionResult<GetEventsResponse> Get(GetEventsSearchQuery searchQuery)
+    [ProducesResponseType(typeof(PaginatedResult<GetEventResponse>), StatusCodes.Status200OK)]
+    public ActionResult<PaginatedResult<GetEventResponse>> Get([FromBody] GetEventsSearchQuery searchQuery, [FromBody] PaginationQuery paginationQuery)
     {
-        return Ok(eventService.GetEvents(searchQuery));
+        return Ok(eventService.GetPaginatedEvents(searchQuery, paginationQuery));
     }
 
     /// <summary>
