@@ -77,6 +77,15 @@ internal class EventRepository(EventStorage eventStorage) : IEventRepository
     }
 
     /// <summary>
+    ///     Получить все события
+    /// </summary>
+    /// <returns></returns>
+    public IList<Event> GetAllEvents()
+    {
+        return eventStorage.Events.ToList();
+    }
+
+    /// <summary>
     ///     Добавить событие
     /// </summary>
     public Event Add(CreateEventParameter parameter)

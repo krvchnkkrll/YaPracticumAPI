@@ -13,9 +13,15 @@ public interface IEventRepository
     Event GetById(Guid eventId);
 
     /// <summary>
-    ///     Получить все события
+    ///     Получить пагинируемые события
     /// </summary>
     PaginatedResult<Event> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery);
+
+    /// <summary>
+    ///     Получить события
+    /// </summary>
+    /// <returns></returns>
+    IList<Event> GetAllEvents();
 
     /// <summary>
     ///     Добавить событие

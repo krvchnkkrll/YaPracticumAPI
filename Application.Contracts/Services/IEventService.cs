@@ -6,9 +6,14 @@ namespace Application.Contracts.Services;
 public interface IEventService
 {
     /// <summary>
-    ///     Получить все события
+    ///     Получить пагинируемые события
     /// </summary>
     PaginatedResult<GetEventResponse> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery);
+    
+    /// <summary>
+    ///     Получить все события
+    /// </summary>
+    IList<EventDto> GetEvents(GetEventsSearchQuery searchQuery);
     
     /// <summary>
     ///     Получить событие

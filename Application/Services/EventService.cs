@@ -30,6 +30,18 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
         };
     }
 
+    public IList<EventDto> GetEvents(GetEventsSearchQuery searchQuery)
+    {
+        return eventRepository.GetAllEvents().Select(e => new EventDto
+        {
+            Id = e.Id,
+            Title = e.Title,
+            Description = e.Description,
+            StartAt = e.StartAt,
+            EndAt = e.EndAt
+        }).ToList();
+    }
+
     public GetEventResponse GetEvent(Guid eventId)
     {
         var eventToReturn = eventRepository.GetById(eventId);
