@@ -1,5 +1,6 @@
 using Application.Contracts.Models;
 using Application.Contracts.Services;
+using Domain.Events;
 using Domain.Events.Parameters;
 using Domain.Models.Pagination;
 using Persistence.Contracts.Repositories;
@@ -30,16 +31,9 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
         };
     }
 
-    public IList<EventDto> GetEvents(GetEventsSearchQuery searchQuery)
+    public IList<Event> GetEvents()
     {
-        return eventRepository.GetAllEvents().Select(e => new EventDto
-        {
-            Id = e.Id,
-            Title = e.Title,
-            Description = e.Description,
-            StartAt = e.StartAt,
-            EndAt = e.EndAt
-        }).ToList();
+        return eventRepository.GetAllEvents();
     }
 
     public GetEventResponse GetEvent(Guid eventId)
