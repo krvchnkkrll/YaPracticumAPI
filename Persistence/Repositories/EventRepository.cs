@@ -70,7 +70,6 @@ internal class EventRepository(EventStorage eventStorage) : IEventRepository
             Items = items,
             TotalItems = totalItems,
             CurrentPage = page,
-            TotalPage = totalPages,
             PageSize = pageSize,
             TotalPages = totalPages
         };

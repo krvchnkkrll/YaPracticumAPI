@@ -18,11 +18,6 @@ public sealed class PaginatedResult<T>
     public required int CurrentPage { get; init; }
     
     /// <summary>
-    ///     Общее количество страниц
-    /// </summary>
-    public required int TotalPage { get; init; }
-    
-    /// <summary>
     ///     Есть ли предыдущая страница
     /// </summary>
     public bool HasPreviousPage => CurrentPage > 1;

@@ -25,7 +25,6 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
             }).ToArray(),
             TotalItems = paginatedEvents.TotalItems,
             CurrentPage = paginatedEvents.CurrentPage,
-            TotalPage = paginatedEvents.TotalPage,
             PageSize = paginatedEvents.PageSize,
             TotalPages = paginatedEvents.TotalPages
         };
