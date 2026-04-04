@@ -13,7 +13,7 @@ public sealed class EventController(IEventService eventService) : AppController
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedResult<GetEventResponse>), StatusCodes.Status200OK)]
-    public ActionResult<PaginatedResult<GetEventResponse>> Get([FromBody] GetEventsSearchQuery searchQuery, [FromBody] PaginationQuery paginationQuery)
+    public ActionResult<PaginatedResult<GetEventResponse>> Get([FromQuery] GetEventsSearchQuery searchQuery, [FromQuery] PaginationQuery paginationQuery)
     {
         return Ok(eventService.GetPaginatedEvents(searchQuery, paginationQuery));
     }
