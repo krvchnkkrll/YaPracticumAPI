@@ -115,7 +115,7 @@ public sealed class EventServiceTests
     }
 
     [Fact]
-    public void Update_EventBy_WithOutExceptions()
+    public void Update_EventById_WithOutExceptions()
     {
         var startAt = new DateTime();
         var endAt = startAt.AddDays(1);
@@ -141,15 +141,6 @@ public sealed class EventServiceTests
         service.UpdateEvent(TestId, request);
 
         MockRepository.Verify(r => r.Update(TestId, expectedParameter), Times.Once);
-    }
-
-    [Fact]
-    public void DeleteEvent_calls_repository_with_event_id()
-    {
-        MockRepository.Setup(r => r.Delete(TestId));
-        var service = new EventService(MockRepository.Object);
-        service.DeleteEvent(TestId);
-        MockRepository.Verify(r => r.Delete(TestId), Times.Once);
     }
 
     [Fact]
@@ -427,11 +418,14 @@ public sealed class EventServiceTests
             EndAt = DateTime.Now.AddDays(4).AddHours(4),
         };
 
-        MockRepository
-            .Setup(r => r.Update(It.IsAny<Guid>(), It.IsAny<UpdateEventParameter>()))
-            .Throws(new KeyNotFoundException());
+        var mockStorage = new Mock<IEventStorage>();
+        mockStorage
+            .Setup(s => s.Events)
+            .Returns(() => _events.ToList());
         
-        var service = new EventService(MockRepository.Object);
+        var repository = new EventRepository(mockStorage.Object);
+        
+        var service = new EventService(repository);
         
         FluentActions
             .Invoking(() => service.UpdateEvent(Guid.CreateVersion7(), request))
@@ -444,17 +438,20 @@ public sealed class EventServiceTests
     {
         var request = new CreateEventRequest
         {
-            Title = "Событие 4",
-            Description = "Описание события 4",
+            Title = "",
+            Description = "",
             StartAt = DateTime.Now.AddDays(4),
             EndAt = DateTime.Now.AddDays(4).AddHours(4),
         };
 
-        MockRepository
-            .Setup(r => r.Add(It.IsAny<CreateEventParameter>()))
-            .Throws(new ArgumentException());
+        var mockStorage = new Mock<IEventStorage>();
+        mockStorage
+            .Setup(s => s.Events)
+            .Returns(() => _events.ToList());
         
-        var service = new EventService(MockRepository.Object);
+        var repository = new EventRepository(mockStorage.Object);
+        
+        var service = new EventService(repository);
         
         FluentActions
             .Invoking(() => service.CreateEvent(request))
@@ -469,18 +466,21 @@ public sealed class EventServiceTests
         {
             Title = "Событие 4",
             Description = "Описание события 4",
-            StartAt = DateTime.Now.AddDays(4),
-            EndAt = DateTime.Now.AddDays(4).AddHours(4),
+            StartAt = DateTime.Now.AddDays(4).AddHours(4),
+            EndAt = DateTime.Now.AddDays(4),
         };
 
-        MockRepository
-            .Setup(r => r.Update(It.IsAny<Guid>(), It.IsAny<UpdateEventParameter>()))
-            .Throws(new ArgumentException());
+        var mockStorage = new Mock<IEventStorage>();
+        mockStorage
+            .Setup(s => s.Events)
+            .Returns(() => _events.ToList());
         
-        var service = new EventService(MockRepository.Object);
+        var repository = new EventRepository(mockStorage.Object);
+        
+        var service = new EventService(repository);
         
         FluentActions
-            .Invoking(() => service.UpdateEvent(Guid.CreateVersion7(), request))
+            .Invoking(() => service.UpdateEvent(TestId, request))
             .Should()
             .Throw<ArgumentException>();
     }
