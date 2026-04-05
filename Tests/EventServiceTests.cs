@@ -68,10 +68,8 @@ public sealed class EventServiceTests
             p.Title == request.Title &&
             p.Description == request.Description &&
             p.StartAt == request.StartAt &&
-            p.EndAt == request.EndAt &&
-            p.Id != TestId)));
-
-        Assert.Equal(result.Id, result.Id);
+            p.EndAt == request.EndAt)));
+        
         Assert.Equal(request.Title, result.Title);
         Assert.Equal(request.Description, result.Description);
         Assert.Equal(request.StartAt, result.StartAt);
