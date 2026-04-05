@@ -3,10 +3,11 @@ using Domain.Events;
 using Domain.Events.Parameters;
 using Domain.Models.Pagination;
 using Persistence.Contracts.Repositories;
+using Persistence.Contracts.Storages;
 
 namespace Persistence.Repositories;
 
-internal class EventRepository(EventStorage eventStorage) : IEventRepository
+internal class EventRepository(IEventStorage eventStorage) : IEventRepository
 {
     /// <summary>
     ///     Получить событие по id

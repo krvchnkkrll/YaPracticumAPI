@@ -55,7 +55,7 @@ public sealed class Event
     /// <summary>
     ///     Обновить событие
     /// </summary>
-    public Event Update(UpdateEventParameter parameter)
+    public void Update(UpdateEventParameter parameter)
     {
         Validate(new ValidateParameter
         {
@@ -68,8 +68,6 @@ public sealed class Event
         Description = parameter.Description;
         StartAt = parameter.StartAt;
         EndAt = parameter.EndAt;
-
-        return this;
     }
     
     private static void Validate(ValidateParameter parameter)
