@@ -3,12 +3,12 @@ namespace Domain.Models.Pagination;
 public sealed class PaginationQuery
 {
     /// <summary>
-    ///     Номер страницы (с единицы)
+    ///     Номер страницы (с единицы). Если параметр не передан или ≤ 0, используется 1.
     /// </summary>
-    public required int Page { get; init; }
+    public int Page { get; set; } 
 
     /// <summary>
-    ///     Размер страницы (число элементов)
+    ///     Размер страницы (число элементов). Если параметр не передан или ≤ 0, используется 10.
     /// </summary>
-    public required int PageSize { get; init; }
+    public int PageSize { get; set; }
 }

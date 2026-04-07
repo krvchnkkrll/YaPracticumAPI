@@ -9,8 +9,17 @@ namespace Application.Services;
 
 internal sealed class EventService(IEventRepository eventRepository) : IEventService
 {
+    private const int DefaultPageSize = 10;
+    private const int DefaultPage = 1;
+    
     public PaginatedResult<GetEventResponse> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery)
     {
+        if (paginationQuery.Page == 0)
+            paginationQuery.Page = DefaultPage;
+        
+        if (paginationQuery.PageSize == 0)
+            paginationQuery.PageSize = DefaultPageSize;
+        
         var paginatedEvents = eventRepository.GetPaginatedEvents(searchQuery, paginationQuery);
 
         return new PaginatedResult<GetEventResponse>

@@ -50,18 +50,16 @@ internal class EventRepository(IEventStorage eventStorage) : IEventRepository
         
         var totalItems = query.Count();
         
-        var page = Math.Max(1, paginationQuery.Page);
-        var pageSize = Math.Max(1, paginationQuery.PageSize);
         var totalPages = totalItems == 0 
             ? 0 
-            : (int)Math.Ceiling(totalItems / (double)pageSize);
+            : (int)Math.Ceiling(totalItems / (double) paginationQuery.PageSize);
         
-        var skip = (page - 1) * pageSize;
+        var skip = (paginationQuery.Page - 1) * paginationQuery.PageSize;
         
         var items = query
             .OrderBy(e => e.Id)
             .Skip(skip)
-            .Take(pageSize)
+            .Take(paginationQuery.PageSize)
             .ToArray();
         
         #endregion
@@ -70,8 +68,8 @@ internal class EventRepository(IEventStorage eventStorage) : IEventRepository
         {
             Items = items,
             TotalItems = totalItems,
-            CurrentPage = page,
-            PageSize = pageSize,
+            CurrentPage = paginationQuery.Page,
+            PageSize = paginationQuery.PageSize,
             TotalPages = totalPages
         };
     }
