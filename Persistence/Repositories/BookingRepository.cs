@@ -1,11 +1,11 @@
 using Domain.Entities.Bookings;
 using Domain.Entities.Bookings.Parameters;
 using Persistence.Contracts.Repositories;
-using Persistence.Storages;
+using Persistence.Contracts.Storages;
 
 namespace Persistence.Repositories;
 
-internal sealed class BookingRepository(BookingStorage bookingStorage) : IBookingRepository
+internal sealed class BookingRepository(IBookingStorage bookingStorage) : IBookingRepository
 {
     public Booking GetById(Guid bookingId)
     {
