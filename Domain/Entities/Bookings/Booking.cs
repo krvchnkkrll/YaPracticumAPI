@@ -45,5 +45,23 @@ public sealed class Booking
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public static Booking Create(CreateBookingParameters parameters) => new Booking(parameters);
+    public static Booking Create(CreateBookingParameters parameters) => new (parameters);
+
+    /// <summary>
+    ///     Подтвердить бронь
+    /// </summary>
+    public void ConfirmBooking()
+    {
+        Status = BookingStatus.Confirmed;
+        ProcessedAt = DateTime.Now;
+    }
+    
+    /// <summary>
+    ///     Отклонить бронь
+    /// </summary>
+    public void RejectBooking()
+    {
+        Status = BookingStatus.Rejected;
+        ProcessedAt = DateTime.Now;
+    }
 }
