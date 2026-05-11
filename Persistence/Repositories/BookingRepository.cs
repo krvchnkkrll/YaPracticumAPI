@@ -6,7 +6,9 @@ using Persistence.Contracts.Storages;
 
 namespace Persistence.Repositories;
 
-internal sealed class BookingRepository(IBookingStorage bookingStorage) : IBookingRepository
+internal sealed class BookingRepository(
+    IBookingStorage bookingStorage,
+    IEventRepository eventRepository) : IBookingRepository
 {
     public Booking GetById(Guid bookingId)
     {
@@ -25,6 +27,8 @@ internal sealed class BookingRepository(IBookingStorage bookingStorage) : IBooki
 
     public Booking Create(CreateBookingParameters parameters)
     {
+        _ = eventRepository.GetById(parameters.EventId);
+        
         var booking = Booking.Create(parameters);
         
         bookingStorage.Bookings.Add(booking);
