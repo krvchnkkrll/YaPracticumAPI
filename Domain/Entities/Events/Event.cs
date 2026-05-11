@@ -1,6 +1,6 @@
-using Domain.Events.Parameters;
+using Domain.Entities.Events.Parameters;
 
-namespace Domain.Events;
+namespace Domain.Entities.Events;
 
 public sealed class Event
 {

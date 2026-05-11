@@ -1,5 +1,5 @@
-using Domain.Events;
-using Domain.Events.Parameters;
+using Domain.Entities.Events;
+using Domain.Entities.Events.Parameters;
 using Persistence.Contracts.Storages;
 
 namespace Persistence;

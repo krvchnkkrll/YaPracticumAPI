@@ -1,4 +1,4 @@
-using Domain.Events;
+using Domain.Entities.Events;
 
 namespace Persistence.Contracts.Storages;
 
