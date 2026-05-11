@@ -1,5 +1,6 @@
 using Domain.Entities.Bookings;
 using Domain.Entities.Bookings.Parameters;
+using Domain.Enums;
 using Persistence.Contracts.Repositories;
 using Persistence.Contracts.Storages;
 
@@ -15,6 +16,11 @@ internal sealed class BookingRepository(IBookingStorage bookingStorage) : IBooki
             throw new KeyNotFoundException($"Событие с идентификатором {bookingId} не найдено.");
         
         return eventToReturn;
+    }
+    
+    public List<Booking> GetPendingBooks()
+    {
+        return bookingStorage.Bookings.Where(b => b.Status == BookingStatus.Pending).ToList();
     }
 
     public Booking Create(CreateBookingParameters parameters)

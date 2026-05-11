@@ -11,5 +11,7 @@ public static class DependencyInjection
     {
         builder.Services.AddScoped<IEventService, EventService>();
         builder.Services.AddScoped<IBookingService, BookingService>();
+
+        builder.Services.AddHostedService<BookingProcessingBackgroundService>();
     }
 }

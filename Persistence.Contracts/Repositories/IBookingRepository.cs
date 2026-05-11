@@ -14,4 +14,9 @@ public interface IBookingRepository
     ///     Добавить бронь
     /// </summary>
     Booking Create(CreateBookingParameters parameters);
+
+    /// <summary>
+    ///     Получить все созданные брони
+    /// </summary>
+    List<Booking> GetPendingBooks();
 }
