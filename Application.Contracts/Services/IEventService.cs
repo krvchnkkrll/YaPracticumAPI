@@ -1,14 +1,20 @@
 using Application.Contracts.Models;
 using Domain.Events;
+using Domain.Models.Pagination;
 
 namespace Application.Contracts.Services;
 
 public interface IEventService
 {
     /// <summary>
+    ///     Получить пагинируемые события
+    /// </summary>
+    PaginatedResult<GetEventResponse> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery);
+    
+    /// <summary>
     ///     Получить все события
     /// </summary>
-    IEnumerable<GetEventResponse> GetEvents();
+    IList<Event> GetEvents();
     
     /// <summary>
     ///     Получить событие

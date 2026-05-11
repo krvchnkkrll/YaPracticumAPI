@@ -1,10 +1,13 @@
+using Application.Contracts.Models;
 using Domain.Events;
 using Domain.Events.Parameters;
+using Domain.Models.Pagination;
 using Persistence.Contracts.Repositories;
+using Persistence.Contracts.Storages;
 
 namespace Persistence.Repositories;
 
-internal class EventRepository(EventStorage eventStorage) : IEventRepository
+internal class EventRepository(IEventStorage eventStorage) : IEventRepository
 {
     /// <summary>
     ///     Получить событие по id
@@ -22,8 +25,60 @@ internal class EventRepository(EventStorage eventStorage) : IEventRepository
     /// <summary>
     ///     Получить все события
     /// </summary>
+    public PaginatedResult<Event> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery)
+    {
+        var query = eventStorage.Events.AsQueryable();
+
+        #region  Filters
+
+        if (!string.IsNullOrEmpty(searchQuery.Title))
+        {
+            query = query.Where(e => e.Title.Contains(searchQuery.Title, StringComparison.InvariantCultureIgnoreCase));
+        }
+        if (searchQuery.From.HasValue)
+        {
+            query = query.Where(e => e.StartAt >= searchQuery.From.Value);
+        }
+        if (searchQuery.To.HasValue)
+        {
+            query = query.Where(e => e.EndAt <= searchQuery.To.Value);
+        }
+
+        #endregion
+
+        #region Pagination
+        
+        var totalItems = query.Count();
+        
+        var totalPages = totalItems == 0 
+            ? 0 
+            : (int)Math.Ceiling(totalItems / (double) paginationQuery.PageSize);
+        
+        var skip = (paginationQuery.Page - 1) * paginationQuery.PageSize;
+        
+        var items = query
+            .OrderBy(e => e.Id)
+            .Skip(skip)
+            .Take(paginationQuery.PageSize)
+            .ToArray();
+        
+        #endregion
+        
+        return new PaginatedResult<Event>
+        {
+            Items = items,
+            TotalItems = totalItems,
+            CurrentPage = paginationQuery.Page,
+            PageSize = paginationQuery.PageSize,
+            TotalPages = totalPages
+        };
+    }
+
+    /// <summary>
+    ///     Получить все события
+    /// </summary>
     /// <returns></returns>
-    public IEnumerable<Event> GetAllEvents()
+    public IList<Event> GetAllEvents()
     {
         return eventStorage.Events.ToList();
     }
@@ -43,11 +98,11 @@ internal class EventRepository(EventStorage eventStorage) : IEventRepository
     /// <summary>
     ///     Обновить событие
     /// </summary>
-    public Event Update(Guid eventId, UpdateEventParameter parameter)
+    public void Update(Guid eventId, UpdateEventParameter parameter)
     {
         var eventToUpdate = GetById(eventId);
         
-        return eventToUpdate.Update(parameter);
+        eventToUpdate.Update(parameter);
     }
 
     /// <summary>

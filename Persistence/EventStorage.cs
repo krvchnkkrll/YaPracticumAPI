@@ -1,9 +1,10 @@
 using Domain.Events;
 using Domain.Events.Parameters;
+using Persistence.Contracts.Storages;
 
 namespace Persistence;
 
-internal sealed class EventStorage
+internal sealed class EventStorage : IEventStorage
 {
     public List<Event> Events { get; } = [];
 

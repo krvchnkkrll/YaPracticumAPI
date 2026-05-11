@@ -1,5 +1,7 @@
+using Application.Contracts.Models;
 using Domain.Events;
 using Domain.Events.Parameters;
+using Domain.Models.Pagination;
 
 namespace Persistence.Contracts.Repositories;
 
@@ -11,9 +13,15 @@ public interface IEventRepository
     Event GetById(Guid eventId);
 
     /// <summary>
-    ///     Получить все события
+    ///     Получить пагинируемые события
     /// </summary>
-    IEnumerable<Event> GetAllEvents();
+    PaginatedResult<Event> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery);
+
+    /// <summary>
+    ///     Получить события
+    /// </summary>
+    /// <returns></returns>
+    IList<Event> GetAllEvents();
 
     /// <summary>
     ///     Добавить событие
@@ -23,7 +31,7 @@ public interface IEventRepository
     /// <summary>
     ///     Обновить событие
     /// </summary>
-    Event Update(Guid eventId, UpdateEventParameter parameter);
+    void Update(Guid eventId, UpdateEventParameter parameter);
 
     /// <summary>
     ///     Удалить событие
