@@ -7,7 +7,7 @@ using Persistence.Contracts.Storages;
 
 namespace Persistence.Repositories;
 
-internal class EventRepository(IEventStorage eventStorage) : IEventRepository
+internal sealed class EventRepository(IEventStorage eventStorage) : IEventRepository
 {
     /// <summary>
     ///     Получить событие по id
