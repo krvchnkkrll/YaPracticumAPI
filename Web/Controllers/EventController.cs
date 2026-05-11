@@ -45,12 +45,15 @@ public sealed class EventController(
     /// <summary>
     ///     Создать событие
     /// </summary>
-    [HttpPost("{id}/book")]
+    [HttpPost("{id:guid}/book")]
     [ProducesResponseType(typeof(CreateEventResponse), StatusCodes.Status202Accepted)]
-    public ActionResult<CreateBookingResponse> CreateBooking([FromRoute] Guid eventId)
+    public ActionResult<CreateBookingResponse> CreateBooking([FromRoute] Guid id)
     {
-        var result = bookingService.CreateBookingAsync(eventId);
-        return AcceptedAtAction(nameof(BookingController.GetBooking), new { id = result.Id }, result);
+        var result = bookingService.CreateBookingAsync(id);
+        return AcceptedAtAction(nameof(BookingController.GetBooking), 
+            nameof(BookingController).Replace("Controller", ""),
+            new { id = result.Id },
+            result);
     }
     
     /// <summary>
