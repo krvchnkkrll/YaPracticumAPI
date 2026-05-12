@@ -11,7 +11,7 @@ public sealed class Booking
     {
         Id = parameters.Id;
         EventId = parameters.EventId;
-        StartAt = DateTime.Now;
+        CreatedAt = DateTime.Now;
         Status = BookingStatus.Pending;
     }
     
@@ -33,7 +33,7 @@ public sealed class Booking
     /// <summary>
     ///     Время создание брони
     /// </summary>
-    public DateTime StartAt { get; private set; }
+    public DateTime CreatedAt { get; private set; }
     
     /// <summary>
     ///     Время завершение обработки брони

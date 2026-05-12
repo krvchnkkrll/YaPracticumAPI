@@ -51,7 +51,7 @@ swagger: ```https://localhost:7013/swagger```
 - Id (Guid) - Идентификатор
 - EventId (Guid) - Внешний ключ событий
 - Status (BookingStatus) - Статус брони
-- StartAt (DateTime) - Время создание брони
+- CreatedAt (DateTime) - Время создание брони
 - ProcessedAt (DateTime?) - Завершение обработки брони
 
 ### BookingStatus
