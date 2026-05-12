@@ -15,7 +15,7 @@ internal sealed class BookingRepository(
         var eventToReturn = bookingStorage.Bookings.SingleOrDefault(b => b.Id == bookingId);
         
         if (ReferenceEquals(eventToReturn, null))
-            throw new KeyNotFoundException($"Событие с идентификатором {bookingId} не найдено.");
+            throw new KeyNotFoundException($"Бронь с идентификатором {bookingId} не найдено.");
         
         return eventToReturn;
     }

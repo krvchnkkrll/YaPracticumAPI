@@ -34,8 +34,8 @@ swagger: ```https://localhost:7013/swagger```
 - PUT /api/events/{id} - изменяет и возвращает событие.
 - DELETE /api/events/{id} - удаляет событие.
 
-- POST /events/{id}/book - создает и возвращает бронь
-- GET /bookings/{id} - возвращает бронь
+- POST /api/events/{id}/book - создает и возвращает бронь
+- GET /api/bookings/{id} - возвращает бронь
 
 ### Формат ошибок
 ```

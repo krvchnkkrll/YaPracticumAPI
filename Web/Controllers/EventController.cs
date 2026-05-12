@@ -43,10 +43,10 @@ public sealed class EventController(
     }
     
     /// <summary>
-    ///     Создать событие
+    ///     Создать бронь
     /// </summary>
     [HttpPost("{id:guid}/book")]
-    [ProducesResponseType(typeof(CreateEventResponse), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(CreateBookingResponse), StatusCodes.Status202Accepted)]
     public ActionResult<CreateBookingResponse> CreateBooking([FromRoute] Guid id)
     {
         var result = bookingService.CreateBookingAsync(id);

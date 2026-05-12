@@ -71,7 +71,7 @@ public sealed class BookingServiceTests
 
         var service = CreateBookingService();
         var created = service.CreateBookingAsync(eventId);
-        var gotten = service.GetBookingAsync(created.Id);
+        var gotten = service.GetBookingByIdAsync(created.Id);
 
         Assert.Equal(created.Id, gotten.Id);
         Assert.Equal(eventId, gotten.EventId);
@@ -101,7 +101,7 @@ public sealed class BookingServiceTests
         var created = service.CreateBookingAsync(eventId);
         bookingsById[created.Id].ConfirmBooking();
 
-        var gotten = service.GetBookingAsync(created.Id);
+        var gotten = service.GetBookingByIdAsync(created.Id);
 
         Assert.Equal(BookingStatus.Confirmed, gotten.Status);
     }
@@ -171,7 +171,7 @@ public sealed class BookingServiceTests
         var service = CreateBookingService();
 
         FluentActions
-            .Invoking(() => service.GetBookingAsync(missingBookingId))
+            .Invoking(() => service.GetBookingByIdAsync(missingBookingId))
             .Should()
             .Throw<KeyNotFoundException>();
     }

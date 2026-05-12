@@ -12,5 +12,5 @@ public interface IBookingService
     /// <summary>
     ///     Получить бронь по идентификатору
     /// </summary>
-    GetBookingResponse GetBookingAsync(Guid bookingId);
+    GetBookingResponse GetBookingByIdAsync(Guid bookingId);
 }
