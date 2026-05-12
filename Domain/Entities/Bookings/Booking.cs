@@ -31,12 +31,12 @@ public sealed class Booking
     public BookingStatus Status { get; set; }
     
     /// <summary>
-    ///     Начало события
+    ///     Время создание брони
     /// </summary>
     public DateTime StartAt { get; private set; }
     
     /// <summary>
-    ///     Завершение события
+    ///     Время завершение обработки брони
     /// </summary>
     public DateTime? ProcessedAt { get; private set; }
 
