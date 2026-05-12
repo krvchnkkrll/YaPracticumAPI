@@ -34,6 +34,9 @@ swagger: ```https://localhost:7013/swagger```
 - PUT /api/events/{id} - изменяет и возвращает событие.
 - DELETE /api/events/{id} - удаляет событие.
 
+- POST /events/{id}/book - создает и возвращает бронь
+- GET /bookings/{id} - возвращает бронь
+
 ### Формат ошибок
 ```
 {
@@ -42,3 +45,23 @@ swagger: ```https://localhost:7013/swagger```
   "detail": "" - Текстовое описание ошибки
 }
 ```
+
+### Booking
+
+- Id (Guid) - Идентификатор
+- EventId (Guid) - Внешний ключ событий
+- Status (BookingStatus) - Статус брони
+- StartAt (DateTime) - Время создание брони
+- ProcessedAt (DateTime?) - Завершение обработки брони
+
+### BookingStatus
+1. Pending. Бронь создана
+2. Confirmed. Бронь подтверждена
+3. Rejected. Бронь отклонена
+
+
+### BookingProcessingBackgroundService
+Описание: 
+1) Каждые 5 секунд из памяти берутся все записи о брони со статусом Pending.
+2) Имитация работы внешнего сервиса (2 секунды).
+3) У брони изменяется статус на Confirmed.
