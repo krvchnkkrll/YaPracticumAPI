@@ -1,13 +1,13 @@
 using Application.Contracts.Models;
-using Domain.Events;
-using Domain.Events.Parameters;
+using Domain.Entities.Events;
+using Domain.Entities.Events.Parameters;
 using Domain.Models.Pagination;
 using Persistence.Contracts.Repositories;
 using Persistence.Contracts.Storages;
 
 namespace Persistence.Repositories;
 
-internal class EventRepository(IEventStorage eventStorage) : IEventRepository
+internal sealed class EventRepository(IEventStorage eventStorage) : IEventRepository
 {
     /// <summary>
     ///     Получить событие по id

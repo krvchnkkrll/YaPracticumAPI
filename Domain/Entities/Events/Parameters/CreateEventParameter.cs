@@ -1,4 +1,4 @@
-namespace Domain.Events.Parameters;
+namespace Domain.Entities.Events.Parameters;
 
 public readonly struct CreateEventParameter
 {

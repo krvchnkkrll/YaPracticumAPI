@@ -1,5 +1,5 @@
 using Application.Contracts.Models;
-using Domain.Events;
+using Domain.Entities.Events;
 using Domain.Models.Pagination;
 
 namespace Application.Contracts.Services;

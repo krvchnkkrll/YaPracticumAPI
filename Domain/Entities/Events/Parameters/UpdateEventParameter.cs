@@ -1,11 +1,16 @@
-namespace Domain.Events.Parameters;
+namespace Domain.Entities.Events.Parameters;
 
-public readonly struct ValidateParameter
+public readonly struct UpdateEventParameter
 {
     /// <summary>
     ///     Название события
     /// </summary>
     public required string Title { get; init; }
+    
+    /// <summary>
+    ///     Описание события
+    /// </summary>
+    public required string? Description { get; init; }
     
     /// <summary>
     ///     Начало события
