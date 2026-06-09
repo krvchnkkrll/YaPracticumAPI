@@ -75,7 +75,7 @@ public sealed class BookingServiceTests
 
         Assert.Equal(created.Id, gotten.Id);
         Assert.Equal(eventId, gotten.EventId);
-        Assert.Equal(BookingStatus.Pending, gotten.Status);
+        Assert.Equal(nameof(BookingStatus.Pending), gotten.Status);
     }
 
     [Fact]
@@ -103,7 +103,7 @@ public sealed class BookingServiceTests
 
         var gotten = service.GetBookingByIdAsync(created.Id);
 
-        Assert.Equal(BookingStatus.Confirmed, gotten.Status);
+        Assert.Equal(nameof(BookingStatus.Confirmed), gotten.Status);
     }
 
     [Fact]

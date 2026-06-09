@@ -1,5 +1,3 @@
-using Domain.Enums;
-
 namespace Application.Contracts.Models;
 
 public class GetBookingResponse
@@ -15,7 +13,17 @@ public class GetBookingResponse
     public required Guid EventId { get; init; }
     
     /// <summary>
+    ///     Добавлена в
+    /// </summary>
+    public required DateTime CreatedAt { get; init; }
+    
+    /// <summary>
+    ///     Обработана в
+    /// </summary>
+    public required DateTime? ProcessedAt { get; init; }
+    
+    /// <summary>
     ///     Статус брони
     /// </summary>
-    public required BookingStatus Status { get; init; }
+    public required string Status { get; init; }
 }

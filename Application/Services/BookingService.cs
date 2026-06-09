@@ -26,12 +26,14 @@ internal sealed class BookingService(IBookingRepository bookingRepository) : IBo
     public GetBookingResponse GetBookingByIdAsync(Guid bookingId)
     {
         var booking = bookingRepository.GetById(bookingId);
-
+        
         return new GetBookingResponse
         {
             Id = booking.Id,
             EventId = booking.EventId,
-            Status = booking.Status,
+            Status = booking.Status.ToString(),
+            CreatedAt = booking.CreatedAt,
+            ProcessedAt = booking.ProcessedAt,
         };
     }
 }
