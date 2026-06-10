@@ -8,11 +8,12 @@ public sealed class Event
 
     private Event(CreateEventParameter parameter) : this()
     {
-        Validate(new ValidateParameter
+        ValidateForCreate(new ValidateForCreateParameter
         {
             Title = parameter.Title,
             StartAt = parameter.StartAt,
             EndAt = parameter.EndAt,
+            TotalSeats = parameter.TotalSeats,
         });
         
         Id = parameter.Id;
@@ -20,6 +21,8 @@ public sealed class Event
         Description = parameter.Description;
         StartAt = parameter.StartAt;
         EndAt = parameter.EndAt;
+        TotalSeats = parameter.TotalSeats;
+        AvailableSeats = parameter.TotalSeats;
     }
 
     /// <summary>
@@ -46,6 +49,16 @@ public sealed class Event
     ///     Завершение события
     /// </summary>
     public DateTime EndAt { get; private set; }
+    
+    /// <summary>
+    ///     Общее количество мест на событии
+    /// </summary>
+    public int TotalSeats { get; private set; }
+    
+    /// <summary>
+    ///     Доступное количество мест на событии
+    /// </summary>
+    public int AvailableSeats { get; private set; }
 
     /// <summary>
     ///     Создать событие
@@ -57,7 +70,7 @@ public sealed class Event
     /// </summary>
     public void Update(UpdateEventParameter parameter)
     {
-        Validate(new ValidateParameter
+        ValidateForUpdate(new ValidateForUpdateParameter
         {
             Title = parameter.Title,
             StartAt = parameter.StartAt,
@@ -70,12 +83,47 @@ public sealed class Event
         EndAt = parameter.EndAt;
     }
     
-    private static void Validate(ValidateParameter parameter)
+    private static void ValidateForCreate(ValidateForCreateParameter forCreateParameter)
     {
-        if (string.IsNullOrWhiteSpace(parameter.Title))
+        if (string.IsNullOrWhiteSpace(forCreateParameter.Title))
             throw new ArgumentException("Название события обязательно и не может быть пустым.");
 
-        if (parameter.StartAt >= parameter.EndAt)
+        if (forCreateParameter.StartAt >= forCreateParameter.EndAt)
             throw new ArgumentException("Дата начала события должна быть раньше даты завершения.");
+
+        if (forCreateParameter.TotalSeats < 0)
+            throw new ArgumentException("Общее количество мест на событии не может быть меньше нуля.");
+    }
+    
+    private static void ValidateForUpdate(ValidateForUpdateParameter forCreateParameter)
+    {
+        if (string.IsNullOrWhiteSpace(forCreateParameter.Title))
+            throw new ArgumentException("Название события обязательно и не может быть пустым.");
+
+        if (forCreateParameter.StartAt >= forCreateParameter.EndAt)
+            throw new ArgumentException("Дата начала события должна быть раньше даты завершения.");
+    }
+
+    public bool TryReserveSeats(int count = 1)
+    {
+        if (count <= 0) 
+            throw new ArgumentOutOfRangeException(nameof(count), "Количество мест для бронирования должно быть больше нуля.");
+
+        if (AvailableSeats < count)
+            return false;
+
+        AvailableSeats -= count;
+        return true;
+    }
+
+    public void ReleaseSeats(int count = 1)
+    {
+        if (count <= 0)
+            throw new ArgumentOutOfRangeException(nameof(count), "Количество освобождаемых мест должно быть больше нуля.");
+
+        if (AvailableSeats + count > TotalSeats) 
+            throw new InvalidOperationException("Количество доступных мест не может быть больше общего количества мест.");
+
+        AvailableSeats += count;
     }
 }

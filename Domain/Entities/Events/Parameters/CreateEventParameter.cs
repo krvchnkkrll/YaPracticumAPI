@@ -26,4 +26,9 @@ public readonly struct CreateEventParameter
     ///     Завершение события
     /// </summary>
     public required DateTime EndAt { get; init; }
+    
+    /// <summary>
+    ///     Общее количество мест на событии
+    /// </summary>
+    public required int TotalSeats { get; init; }
 }

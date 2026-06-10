@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Application.Contracts.Models;
 using Application.Contracts.Services;
 using Domain.Entities.Events;
@@ -30,7 +31,9 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
                 Title = e.Title,
                 Description = e.Description,
                 StartAt = e.StartAt,
-                EndAt = e.EndAt
+                EndAt = e.EndAt,
+                TotalSeats = e.TotalSeats,
+                AvailableSeats = e.AvailableSeats
             }).ToArray(),
             TotalItems = paginatedEvents.TotalItems,
             CurrentPage = paginatedEvents.CurrentPage,
@@ -54,12 +57,17 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
             Title = eventToReturn.Title,
             Description = eventToReturn.Description,
             StartAt = eventToReturn.StartAt,
-            EndAt = eventToReturn.EndAt
+            EndAt = eventToReturn.EndAt,
+            TotalSeats = eventToReturn.TotalSeats,
+            AvailableSeats = eventToReturn.AvailableSeats
         };
     }
     
     public CreateEventResponse CreateEvent(CreateEventRequest request)
     {
+        var totalSeats = request.TotalSeats ?? 
+                         throw new ValidationException("Общее количество мест обязательно.");
+        
         var newEvent = eventRepository.Add(new CreateEventParameter
         {
             Id = Guid.CreateVersion7(),
@@ -67,6 +75,7 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
             Description = request.Description,
             StartAt = request.StartAt,
             EndAt = request.EndAt,
+            TotalSeats = totalSeats,
         });
 
         return new CreateEventResponse
@@ -75,7 +84,9 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
             Title = newEvent.Title,
             Description = newEvent.Description,
             StartAt = newEvent.StartAt,
-            EndAt = newEvent.EndAt
+            EndAt = newEvent.EndAt,
+            TotalSeats = newEvent.TotalSeats,
+            AvailableSeats = newEvent.AvailableSeats
         };
     }
 
@@ -93,5 +104,11 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
     public void DeleteEvent(Guid eventId)
     {
         eventRepository.Delete(eventId);
+    }
+
+    private static int ValidateTotalSeats(int? totalSeats)
+    {
+        return totalSeats 
+               ?? throw new ValidationException("Общее количество мест обязательно.");
     }
 }

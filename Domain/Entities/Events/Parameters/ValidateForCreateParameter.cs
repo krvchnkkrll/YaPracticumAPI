@@ -1,16 +1,11 @@
-namespace Application.Contracts.Models;
+namespace Domain.Entities.Events.Parameters;
 
-public sealed class CreateEventRequest
+public readonly struct ValidateForCreateParameter
 {
     /// <summary>
     ///     Название события
     /// </summary>
     public required string Title { get; init; }
-    
-    /// <summary>
-    ///     Описание события
-    /// </summary>
-    public string? Description { get; init; }
     
     /// <summary>
     ///     Начало события
@@ -23,7 +18,7 @@ public sealed class CreateEventRequest
     public required DateTime EndAt { get; init; }
     
     /// <summary>
-    ///     Общее количество мест на событии;
+    ///     Общее количество мест
     /// </summary>
-    public required int? TotalSeats { get; init; }
+    public required int TotalSeats { get; init; }
 }
