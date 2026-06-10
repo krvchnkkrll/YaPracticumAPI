@@ -15,7 +15,7 @@ public sealed class BookingServiceTests
 {
     private Mock<IBookingRepository> MockBookingRepository { get; } = new();
     private Mock<IEventRepository> MockEventRepository { get; } = new();
-    private BookingService CreateBookingService() => new(MockBookingRepository.Object);
+    private BookingService CreateBookingService() => new(MockBookingRepository.Object, MockEventRepository.Object);
 
     [Fact]
     public void Create_NewBooking_ReturnCreatedPendingBooking()
@@ -125,7 +125,7 @@ public sealed class BookingServiceTests
         
         var repository = new BookingRepository(mockStorage.Object, MockEventRepository.Object);
 
-        var service = new BookingService(repository);
+        var service = new BookingService(repository, MockEventRepository.Object);
 
         FluentActions
             .Invoking(() => service.CreateBookingAsync(parameters.EventId))
@@ -152,7 +152,7 @@ public sealed class BookingServiceTests
         
         var repository = new BookingRepository(mockStorage.Object, MockEventRepository.Object);
 
-        var service = new BookingService(repository);
+        var service = new BookingService(repository, MockEventRepository.Object);
 
         FluentActions
             .Invoking(() => service.CreateBookingAsync(parameters.EventId))

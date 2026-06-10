@@ -1,26 +1,41 @@
 using Application.Contracts.Models;
 using Application.Contracts.Services;
 using Domain.Entities.Bookings.Parameters;
+using Domain.Exceptions;
 using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 
-internal sealed class BookingService(IBookingRepository bookingRepository) : IBookingService
+internal sealed class BookingService(
+    IBookingRepository bookingRepository,
+    IEventRepository eventRepository) : IBookingService
 {
+    private readonly Lock _bookingLock = new();
+    
     public CreateBookingResponse CreateBookingAsync(Guid eventId)
     {
-        var booking = bookingRepository.Create(new CreateBookingParameters
+        lock (_bookingLock)
         {
-            Id = Guid.CreateVersion7(),
-            EventId = eventId
-        });
+            var eventEntity = eventRepository.GetById(eventId);
 
-        return new CreateBookingResponse
-        {
-            Id = booking.Id,
-            EventId = booking.EventId,
-            Status = booking.Status,
-        };
+            var result = eventEntity.TryReserveSeats();
+
+            if (!result)
+                throw new NoAvailableSeatsException();
+            
+            var booking = bookingRepository.Create(new CreateBookingParameters
+            {
+                Id = Guid.CreateVersion7(),
+                EventId = eventId
+            });
+
+            return new CreateBookingResponse
+            {
+                Id = booking.Id,
+                EventId = booking.EventId,
+                Status = booking.Status,
+            };
+        }
     }
 
     public GetBookingResponse GetBookingByIdAsync(Guid bookingId)
