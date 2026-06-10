@@ -120,7 +120,7 @@ public sealed class BookingServiceTests
             .Setup(s => s.Bookings);
         
         MockEventRepository
-            .Setup(r => r.GetById(It.IsAny<Guid>()))
+            .Setup(r => r.GetEventById(It.IsAny<Guid>()))
             .Throws<KeyNotFoundException>();
         
         var repository = new BookingRepository(mockStorage.Object, MockEventRepository.Object);
@@ -147,7 +147,7 @@ public sealed class BookingServiceTests
             .Setup(s => s.Bookings);
         
         MockEventRepository
-            .Setup(r => r.GetById(It.IsAny<Guid>()))
+            .Setup(r => r.GetEventById(It.IsAny<Guid>()))
             .Throws<KeyNotFoundException>();
         
         var repository = new BookingRepository(mockStorage.Object, MockEventRepository.Object);

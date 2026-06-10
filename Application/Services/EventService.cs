@@ -49,7 +49,7 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
 
     public GetEventResponse GetEvent(Guid eventId)
     {
-        var eventToReturn = eventRepository.GetById(eventId);
+        var eventToReturn = eventRepository.GetEventById(eventId);
         
         return new GetEventResponse
         {

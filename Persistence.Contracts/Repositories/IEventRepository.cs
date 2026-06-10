@@ -10,8 +10,13 @@ public interface IEventRepository
     /// <summary>
     ///     Получить событие по id
     /// </summary>
-    Event GetById(Guid eventId);
-
+    Event GetEventById(Guid eventId);
+    
+    /// <summary>
+    ///     Получить событие по id
+    /// </summary>
+    Event? GetEventOrDefaultById(Guid eventId);
+    
     /// <summary>
     ///     Получить пагинируемые события
     /// </summary>

@@ -101,7 +101,7 @@ public sealed class EventServiceTests
     public void Get_EventById_ReturnEvent()
     {
         MockRepository
-            .Setup(r => r.GetById(TestId))
+            .Setup(r => r.GetEventById(TestId))
             .Returns(() => _events.Single(e => e.Id == TestId));
 
         var service = new EventService(MockRepository.Object);

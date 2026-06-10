@@ -16,7 +16,7 @@ internal sealed class BookingService(
     {
         lock (_bookingLock)
         {
-            var eventEntity = eventRepository.GetById(eventId);
+            var eventEntity = eventRepository.GetEventById(eventId);
 
             var result = eventEntity.TryReserveSeats();
 
@@ -41,6 +41,9 @@ internal sealed class BookingService(
     public GetBookingResponse GetBookingByIdAsync(Guid bookingId)
     {
         var booking = bookingRepository.GetById(bookingId);
+        
+        if (ReferenceEquals(booking, null))
+            throw new KeyNotFoundException($"Бронь с идентификатором {bookingId} не найдено.");
         
         return new GetBookingResponse
         {

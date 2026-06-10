@@ -27,7 +27,7 @@ internal sealed class BookingRepository(
 
     public Booking Create(CreateBookingParameters parameters)
     {
-        _ = eventRepository.GetById(parameters.EventId);
+        _ = eventRepository.GetEventById(parameters.EventId);
         
         var booking = Booking.Create(parameters);
         
