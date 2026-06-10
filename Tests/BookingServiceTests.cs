@@ -5,6 +5,7 @@ using Domain.Entities.Bookings.Parameters;
 using Domain.Entities.Events;
 using Domain.Entities.Events.Parameters;
 using Domain.Enums;
+using Domain.Exceptions;
 using FluentAssertions;
 using Moq;
 using Persistence.Contracts.Repositories;
@@ -185,6 +186,53 @@ public sealed class BookingServiceTests
             .Invoking(() => service.GetBookingByIdAsync(missingBookingId))
             .Should()
             .Throw<KeyNotFoundException>();
+    }
+    
+    [Fact]
+    public void Create_Booking_ReserveEventSeats()
+    {
+        var eventId = Guid.CreateVersion7();
+        
+        var eventEntity = SetupExistingEvent(eventId);
+        var availableSeatsBeforeBooking = eventEntity.AvailableSeats;
+        
+        MockBookingRepository
+            .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
+            .Returns((CreateBookingParameters p) => Booking.Create(p));
+
+        var service = CreateBookingService();
+        service.CreateBookingAsync(eventId);
+        
+        var availableSeatsAfterBooking = eventEntity.AvailableSeats;
+
+        Assert.Equal(availableSeatsBeforeBooking, availableSeatsAfterBooking + 1);
+    }
+    
+    [Fact]
+    public void Create_ManyBookings_ThrowsNoAvailableSeatsException()
+    {
+        var eventId = Guid.CreateVersion7();
+        
+        SetupExistingEvent(eventId);
+        
+        MockBookingRepository
+            .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
+            .Returns((CreateBookingParameters p) => Booking.Create(p));
+
+        const int bookingCount = 6;
+
+        var service = CreateBookingService();
+        
+        FluentActions
+            .Invoking(() =>
+            {
+                for (var i = 0; i < bookingCount; i++)
+                {
+                    service.CreateBookingAsync(eventId);
+                }
+            })
+            .Should()
+            .Throw<NoAvailableSeatsException>();
     }
     
     private Event SetupExistingEvent(Guid eventId, int totalSeats = 5)
