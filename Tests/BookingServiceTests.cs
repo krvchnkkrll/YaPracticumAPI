@@ -116,6 +116,7 @@ public sealed class BookingServiceTests
         var gotten = service.GetBookingByIdAsync(created.Id);
 
         Assert.Equal(nameof(BookingStatus.Confirmed), gotten.Status);
+        Assert.NotNull(gotten.ProcessedAt);
     }
 
     [Fact]
