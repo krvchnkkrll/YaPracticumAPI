@@ -2,6 +2,8 @@ using Application.Contracts.Models;
 using Application.Services;
 using Domain.Entities.Bookings;
 using Domain.Entities.Bookings.Parameters;
+using Domain.Entities.Events;
+using Domain.Entities.Events.Parameters;
 using Domain.Enums;
 using FluentAssertions;
 using Moq;
@@ -21,6 +23,9 @@ public sealed class BookingServiceTests
     public void Create_NewBooking_ReturnCreatedPendingBooking()
     {
         var eventId = Guid.CreateVersion7();
+        
+        SetupExistingEvent(eventId);
+        
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
             .Returns((CreateBookingParameters p) => Booking.Create(p));
@@ -35,6 +40,9 @@ public sealed class BookingServiceTests
     public void Create_ManyBookings_ReturnsPendingBookingsWithUniqueIds()
     {
         var eventId = Guid.CreateVersion7();
+        
+        SetupExistingEvent(eventId);
+        
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
             .Returns((CreateBookingParameters p) => Booking.Create(p));
@@ -54,6 +62,9 @@ public sealed class BookingServiceTests
     public void Get_BookingById_ReturnCreatedBooking()
     {
         var eventId = Guid.CreateVersion7();
+        
+        SetupExistingEvent(eventId);
+        
         var bookingsById = new Dictionary<Guid, Booking>();
         
         MockBookingRepository
@@ -83,7 +94,7 @@ public sealed class BookingServiceTests
     {
         var eventId = Guid.CreateVersion7();
         var bookingsById = new Dictionary<Guid, Booking>();
-
+        SetupExistingEvent(eventId);
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
             .Returns((CreateBookingParameters p) =>
@@ -174,5 +185,24 @@ public sealed class BookingServiceTests
             .Invoking(() => service.GetBookingByIdAsync(missingBookingId))
             .Should()
             .Throw<KeyNotFoundException>();
+    }
+    
+    private Event SetupExistingEvent(Guid eventId, int totalSeats = 5)
+    {
+        var eventEntity = Event.Create(new CreateEventParameter
+        {
+            Id = eventId,
+            Title = "Событие",
+            Description = null,
+            StartAt = DateTime.Now.AddDays(1),
+            EndAt = DateTime.Now.AddDays(1).AddHours(1),
+            TotalSeats = totalSeats
+        });
+
+        MockEventRepository
+            .Setup(r => r.GetEventById(eventId))
+            .Returns(eventEntity);
+
+        return eventEntity;
     }
 }
