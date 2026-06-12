@@ -118,7 +118,64 @@ public sealed class BookingServiceTests
         Assert.Equal(nameof(BookingStatus.Confirmed), gotten.Status);
         Assert.NotNull(gotten.ProcessedAt);
     }
+    
+    [Fact]
+    public void Get_BookingAfterReject_ReturnsConfirmedBooking()
+    {
+        var eventId = Guid.CreateVersion7();
+        var bookingsById = new Dictionary<Guid, Booking>();
+        SetupExistingEvent(eventId);
+        MockBookingRepository
+            .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
+            .Returns((CreateBookingParameters p) =>
+            {
+                var booking = Booking.Create(p);
+                bookingsById[booking.Id] = booking;
+                return booking;
+            });
+        
+        MockBookingRepository
+            .Setup(r => r.GetById(It.IsAny<Guid>()))
+            .Returns((Guid bookingId) => bookingsById[bookingId]);
 
+        var service = CreateBookingService();
+        var created = service.CreateBookingAsync(eventId);
+        bookingsById[created.Id].ConfirmBooking();
+
+        var gotten = service.GetBookingByIdAsync(created.Id);
+
+        Assert.Equal(nameof(BookingStatus.Confirmed), gotten.Status);
+        Assert.NotNull(gotten.ProcessedAt);
+    }
+
+    
+    [Fact]
+    public void Get_ReleaseSeats_IncreasesAvailableSeats()
+    {
+        var eventId = Guid.CreateVersion7();
+        var eventEntity = SetupExistingEvent(eventId);
+        
+        var startedEventAvailableSeats = eventEntity.AvailableSeats;
+        eventEntity.TryReserveSeats();
+        eventEntity.ReleaseSeats();
+        
+        Assert.Equal(startedEventAvailableSeats, eventEntity.AvailableSeats);
+    }
+    
+    [Fact]
+    public void Get_ReleaseSeats_AfterRejectSeats()
+    {
+        var eventId = Guid.CreateVersion7();
+        var eventEntity = SetupExistingEvent(eventId);
+        
+        var startedEventAvailableSeats = eventEntity.AvailableSeats;
+        eventEntity.TryReserveSeats();
+        eventEntity.ReleaseSeats();
+        eventEntity.TryReserveSeats();
+        
+        Assert.Equal(startedEventAvailableSeats, eventEntity.AvailableSeats + 1);
+    }
+    
     [Fact]
     public void Create_BookingForNotExistEvent_ThrowsKeyNotFoundException()
     {
