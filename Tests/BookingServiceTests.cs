@@ -25,7 +25,7 @@ public sealed class BookingServiceTests
     {
         var eventId = Guid.CreateVersion7();
         
-        SetupExistingEvent(eventId);
+        CreateTestEvent(eventId);
         
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
@@ -42,7 +42,7 @@ public sealed class BookingServiceTests
     {
         var eventId = Guid.CreateVersion7();
         
-        SetupExistingEvent(eventId);
+        CreateTestEvent(eventId);
         
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
@@ -64,7 +64,7 @@ public sealed class BookingServiceTests
     {
         var eventId = Guid.CreateVersion7();
         
-        SetupExistingEvent(eventId);
+        CreateTestEvent(eventId);
         
         var bookingsById = new Dictionary<Guid, Booking>();
         
@@ -95,7 +95,7 @@ public sealed class BookingServiceTests
     {
         var eventId = Guid.CreateVersion7();
         var bookingsById = new Dictionary<Guid, Booking>();
-        SetupExistingEvent(eventId);
+        CreateTestEvent(eventId);
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
             .Returns((CreateBookingParameters p) =>
@@ -124,7 +124,7 @@ public sealed class BookingServiceTests
     {
         var eventId = Guid.CreateVersion7();
         var bookingsById = new Dictionary<Guid, Booking>();
-        SetupExistingEvent(eventId);
+        CreateTestEvent(eventId);
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
             .Returns((CreateBookingParameters p) =>
@@ -153,7 +153,7 @@ public sealed class BookingServiceTests
     public void Get_ReleaseSeats_IncreasesAvailableSeats()
     {
         var eventId = Guid.CreateVersion7();
-        var eventEntity = SetupExistingEvent(eventId);
+        var eventEntity = CreateTestEvent(eventId);
         
         var startedEventAvailableSeats = eventEntity.AvailableSeats;
         eventEntity.TryReserveSeats();
@@ -166,7 +166,7 @@ public sealed class BookingServiceTests
     public void Get_ReleaseSeats_AfterRejectSeats()
     {
         var eventId = Guid.CreateVersion7();
-        var eventEntity = SetupExistingEvent(eventId);
+        var eventEntity = CreateTestEvent(eventId);
         
         var startedEventAvailableSeats = eventEntity.AvailableSeats;
         eventEntity.TryReserveSeats();
@@ -251,7 +251,7 @@ public sealed class BookingServiceTests
     {
         var eventId = Guid.CreateVersion7();
         
-        var eventEntity = SetupExistingEvent(eventId);
+        var eventEntity = CreateTestEvent(eventId);
         var availableSeatsBeforeBooking = eventEntity.AvailableSeats;
         
         MockBookingRepository
@@ -271,7 +271,7 @@ public sealed class BookingServiceTests
     {
         var eventId = Guid.CreateVersion7();
         
-        SetupExistingEvent(eventId);
+        CreateTestEvent(eventId);
         
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
@@ -293,7 +293,95 @@ public sealed class BookingServiceTests
             .Throw<NoAvailableSeatsException>();
     }
     
-    private Event SetupExistingEvent(Guid eventId, int totalSeats = 5)
+    [Fact]
+    public async Task Create_ConcurrentRequests_PreventsOverbooking()
+    {
+        var eventId = Guid.CreateVersion7();
+        var eventEntity = CreateTestEvent(eventId, totalSeats: 5);
+
+        MockBookingRepository
+            .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
+            .Returns((CreateBookingParameters p) => Booking.Create(p));
+
+        var service = CreateBookingService();
+
+        var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var tasks = Enumerable.Range(0, 20)
+            .Select(async _ =>
+            {
+                await start.Task;
+
+                try
+                {
+                    service.CreateBookingAsync(eventId);
+                    return true;
+                }
+                catch (NoAvailableSeatsException)
+                {
+                    return false;
+                }
+            })
+            .ToArray();
+
+        start.SetResult();
+
+        var results = await Task.WhenAll(tasks);
+
+        results.Count(success => success)
+            .Should()
+            .Be(5);
+
+        results.Count(success => !success)
+            .Should()
+            .Be(15);
+
+        eventEntity.AvailableSeats
+            .Should()
+            .Be(0);
+    }
+    
+    [Fact]
+    public async Task Create_ConcurrentRequests_ReturnsBookingsWithUniqueIds()
+    {
+        var eventId = Guid.CreateVersion7();
+        var eventEntity = CreateTestEvent(eventId, totalSeats: 10);
+
+        MockBookingRepository
+            .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
+            .Returns((CreateBookingParameters p) => Booking.Create(p));
+
+        var service = CreateBookingService();
+
+        var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        var tasks = Enumerable.Range(0, 10)
+            .Select(async _ =>
+            {
+                await start.Task;
+                return service.CreateBookingAsync(eventId);
+            })
+            .ToArray();
+
+        start.SetResult();
+
+        var bookings = await Task.WhenAll(tasks);
+
+        bookings
+            .Should()
+            .HaveCount(10);
+
+        bookings
+            .Select(b => b.Id)
+            .Should()
+            .OnlyHaveUniqueItems();
+
+        eventEntity.AvailableSeats
+            .Should()
+            .Be(0);
+    }
+    
+    private Event CreateTestEvent(Guid eventId, int totalSeats = 5)
     {
         var eventEntity = Event.Create(new CreateEventParameter
         {
