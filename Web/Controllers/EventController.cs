@@ -47,6 +47,8 @@ public sealed class EventController(
     /// </summary>
     [HttpPost("{id:guid}/book")]
     [ProducesResponseType(typeof(CreateBookingResponse), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public ActionResult<CreateBookingResponse> CreateBooking([FromRoute] Guid id)
     {
         var result = bookingService.CreateBookingAsync(id);

@@ -13,7 +13,6 @@ public sealed class BookingController(IBookingService bookingService) : AppContr
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(GetBookingResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public ActionResult<GetBookingResponse> GetBooking([FromRoute] Guid id)
     {
         return Ok(bookingService.GetBookingByIdAsync(id));
