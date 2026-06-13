@@ -24,7 +24,9 @@ public sealed class EventServiceTests
             Title = "Событие 1",
             Description = null,
             StartAt = DateTime.Now.AddDays(1),
-            EndAt = DateTime.Now.AddDays(1).AddHours(1),
+            EndAt = DateTime.Now.AddDays(1)
+                .AddHours(1),
+            TotalSeats = 5,
         }),
         Event.Create(new CreateEventParameter
         {
@@ -32,7 +34,9 @@ public sealed class EventServiceTests
             Title = "Событие 2",
             Description = "Описание события 2",
             StartAt = DateTime.Now.AddDays(2),
-            EndAt = DateTime.Now.AddDays(2).AddHours(2),
+            EndAt = DateTime.Now.AddDays(2)
+                .AddHours(2),
+            TotalSeats = 9,
         }),
         Event.Create(new CreateEventParameter
         {
@@ -40,7 +44,9 @@ public sealed class EventServiceTests
             Title = "Событие 3",
             Description = "Описание события 3",
             StartAt = DateTime.Now.AddDays(3),
-            EndAt = DateTime.Now.AddDays(3).AddHours(3),
+            EndAt = DateTime.Now.AddDays(3)
+                .AddHours(3),
+            TotalSeats = 13,
         })
     ];
 
@@ -59,7 +65,8 @@ public sealed class EventServiceTests
             Title = "Coбытие 4",
             Description = "Описание события 4",
             StartAt = startAt,
-            EndAt = endAt
+            EndAt = endAt,
+            TotalSeats = 20
         };
 
         var result = service.CreateEvent(request);
@@ -94,7 +101,7 @@ public sealed class EventServiceTests
     public void Get_EventById_ReturnEvent()
     {
         MockRepository
-            .Setup(r => r.GetById(TestId))
+            .Setup(r => r.GetEventById(TestId))
             .Returns(() => _events.Single(e => e.Id == TestId));
 
         var service = new EventService(MockRepository.Object);
@@ -106,7 +113,9 @@ public sealed class EventServiceTests
             Title = e.Title,
             Description = e.Description,
             StartAt = e.StartAt,
-            EndAt = e.EndAt
+            EndAt = e.EndAt,
+            TotalSeats = e.TotalSeats,
+            AvailableSeats = e.AvailableSeats,
         }).Single(e => e.Id == TestId);
 
         result.Should().BeEquivalentTo(expectedEvent);
@@ -191,7 +200,9 @@ public sealed class EventServiceTests
                 Title = e.Title,
                 Description = e.Description,
                 StartAt = e.StartAt,
-                EndAt = e.EndAt
+                EndAt = e.EndAt,
+                TotalSeats = e.TotalSeats,
+                AvailableSeats = e.AvailableSeats,
             }).Where(e => e.Title == "Событие 3").ToList();
 
         var expectedResult = new PaginatedResult<GetEventResponse>
@@ -241,7 +252,9 @@ public sealed class EventServiceTests
                 Title = e.Title,
                 Description = e.Description,
                 StartAt = e.StartAt,
-                EndAt = e.EndAt
+                EndAt = e.EndAt,
+                TotalSeats = e.TotalSeats,
+                AvailableSeats = e.AvailableSeats,
             })
             .Where(e =>
                 e.StartAt >= searchQuery.From &&
@@ -295,7 +308,9 @@ public sealed class EventServiceTests
                 Title = e.Title,
                 Description = e.Description,
                 StartAt = e.StartAt,
-                EndAt = e.EndAt
+                EndAt = e.EndAt,
+                TotalSeats = e.TotalSeats,
+                AvailableSeats = e.AvailableSeats,
             })
             .Where(e =>
                 e.StartAt >= searchQuery.From &&
@@ -360,7 +375,9 @@ public sealed class EventServiceTests
                 Title = e.Title,
                 Description = e.Description,
                 StartAt = e.StartAt,
-                EndAt = e.EndAt
+                EndAt = e.EndAt,
+                TotalSeats = e.TotalSeats,
+                AvailableSeats = e.AvailableSeats
             })
             .OrderBy(e => e.Id)
             .ToList();
@@ -439,7 +456,9 @@ public sealed class EventServiceTests
             Title = "",
             Description = "",
             StartAt = DateTime.Now.AddDays(4),
-            EndAt = DateTime.Now.AddDays(4).AddHours(4),
+            EndAt = DateTime.Now.AddDays(4)
+                .AddHours(4),
+            TotalSeats = 20,
         };
 
         var mockStorage = new Mock<IEventStorage>();

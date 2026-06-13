@@ -1,5 +1,7 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Text.Json;
+using Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web.Common.Middleware;
@@ -27,23 +29,32 @@ internal sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<
             KeyNotFoundException => new ProblemDetails
             {
                 Title = "Resource not found",
-                Status = StatusCodes.Status404NotFound
+                Status = StatusCodes.Status404NotFound,
+                Detail = exception.Message
             },
 
-            ArgumentException => new ProblemDetails
+            ArgumentException or ValidationException => new ProblemDetails
             {
                 Title = "Invalid request",
-                Status = StatusCodes.Status400BadRequest
+                Status = StatusCodes.Status400BadRequest,
+                Detail = exception.Message
+            },
+            
+            NoAvailableSeatsException => new ProblemDetails
+            {
+                Title = "Conflict",
+                Status = StatusCodes.Status409Conflict,
+                Detail = "No available seats for this event"
             },
 
             _ => new ProblemDetails
             {
                 Title = "Internal server error",
-                Status = StatusCodes.Status500InternalServerError
+                Status = StatusCodes.Status500InternalServerError,
+                Detail = exception.Message
             }
         };
-
-        problem.Detail = exception.Message;
+        
         context.Response.ContentType = "application/json";
         context.Response.StatusCode = problem.Status ?? (int) HttpStatusCode.InternalServerError;
 

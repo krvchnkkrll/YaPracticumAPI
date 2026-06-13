@@ -26,4 +26,14 @@ public sealed class CreateEventResponse
     ///     Завершение события
     /// </summary>
     public required DateTime EndAt { get; init; }
+    
+    /// <summary>
+    ///     Общее количество мест на событии
+    /// </summary>
+    public required int TotalSeats { get; init; }
+    
+    /// <summary>
+    ///     Количество доступных мест
+    /// </summary>
+    public required int AvailableSeats { get; init; }
 }

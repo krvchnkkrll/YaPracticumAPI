@@ -12,12 +12,19 @@ internal sealed class EventRepository(IEventStorage eventStorage) : IEventReposi
     /// <summary>
     ///     Получить событие по id
     /// </summary>
-    public Event GetById(Guid eventId)
+    public Event GetEventById(Guid eventId)
     {
-        var eventToReturn = eventStorage.Events.SingleOrDefault(e => e.Id == eventId);
+        var eventToReturn = GetEventOrDefaultById(eventId);
         
         if (ReferenceEquals(eventToReturn, null))
             throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
+        
+        return eventToReturn;
+    }
+
+    public Event? GetEventOrDefaultById(Guid eventId)
+    {
+        var eventToReturn = eventStorage.Events.SingleOrDefault(e => e.Id == eventId);
         
         return eventToReturn;
     }
@@ -100,7 +107,7 @@ internal sealed class EventRepository(IEventStorage eventStorage) : IEventReposi
     /// </summary>
     public void Update(Guid eventId, UpdateEventParameter parameter)
     {
-        var eventToUpdate = GetById(eventId);
+        var eventToUpdate = GetEventById(eventId);
         
         eventToUpdate.Update(parameter);
     }
@@ -110,7 +117,7 @@ internal sealed class EventRepository(IEventStorage eventStorage) : IEventReposi
     /// </summary>
     public void Delete(Guid eventId)
     {
-        var eventToRemove = GetById(eventId);
+        var eventToRemove = GetEventById(eventId);
 
         eventStorage.Events.Remove(eventToRemove);
     }
