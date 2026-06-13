@@ -1,3 +1,4 @@
+using Domain.Entities.Bookings;
 using Domain.Entities.Events.Parameters;
 
 namespace Domain.Entities.Events;
@@ -59,7 +60,14 @@ public sealed class Event
     ///     Доступное количество мест на событии
     /// </summary>
     public int AvailableSeats { get; private set; }
+    
+    private readonly List<Booking> _bookings = [];
 
+    /// <summary>
+    ///     Брони
+    /// </summary>
+    public IReadOnlyCollection<Booking> Bookings => _bookings;
+    
     /// <summary>
     ///     Создать событие
     /// </summary>

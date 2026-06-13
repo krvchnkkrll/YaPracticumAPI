@@ -47,7 +47,7 @@ public static class DependencyInjection
         builder.Services.AddScoped<IEventRepository, EventRepository>();
         builder.Services.AddScoped<IBookingRepository, BookingRepository>();
         
-        builder.Services.AddSingleton<IBookingRepository, BookingRepository>();
         builder.Services.AddSingleton<IEventStorage, EventStorage>();
+        builder.Services.AddSingleton<IBookingStorage, BookingStorage>();
     }
 }

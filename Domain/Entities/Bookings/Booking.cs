@@ -1,4 +1,5 @@
 using Domain.Entities.Bookings.Parameters;
+using Domain.Entities.Events;
 using Domain.Enums;
 
 namespace Domain.Entities.Bookings;
@@ -18,17 +19,12 @@ public sealed class Booking
     /// <summary>
     ///     Идентификатор
     /// </summary>
-    public Guid Id { get; set; }
-    
-    /// <summary>
-    ///     Внешний ключ событий
-    /// </summary>
-    public Guid EventId { get; set; }
+    public Guid Id { get; private set; }
     
     /// <summary>
     ///     Статус брони
     /// </summary>
-    public BookingStatus Status { get; set; }
+    public BookingStatus Status { get; private set; }
     
     /// <summary>
     ///     Время создание брони
@@ -39,6 +35,16 @@ public sealed class Booking
     ///     Время завершение обработки брони
     /// </summary>
     public DateTime? ProcessedAt { get; private set; }
+    
+    /// <summary>
+    ///     Внешний ключ событий
+    /// </summary>
+    public Guid EventId { get; private set; }
+
+    /// <summary>
+    ///     Навигационное свойство событий
+    /// </summary>
+    public Event Event { get; private set; } = null!;
 
     /// <summary>
     ///     Добавить 
