@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Net;
 using System.Text.Json;
 using Domain.Exceptions;
@@ -32,7 +33,7 @@ internal sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<
                 Detail = exception.Message
             },
 
-            ArgumentException => new ProblemDetails
+            ArgumentException or ValidationException => new ProblemDetails
             {
                 Title = "Invalid request",
                 Status = StatusCodes.Status400BadRequest,

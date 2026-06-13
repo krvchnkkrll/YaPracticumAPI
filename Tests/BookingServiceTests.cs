@@ -120,11 +120,13 @@ public sealed class BookingServiceTests
     }
     
     [Fact]
-    public void Get_BookingAfterReject_ReturnsConfirmedBooking()
+    public void Get_BookingAfterReject_ReturnsRejectedBooking()
     {
         var eventId = Guid.CreateVersion7();
         var bookingsById = new Dictionary<Guid, Booking>();
+
         CreateTestEvent(eventId);
+
         MockBookingRepository
             .Setup(r => r.Create(It.IsAny<CreateBookingParameters>()))
             .Returns((CreateBookingParameters p) =>
@@ -133,21 +135,21 @@ public sealed class BookingServiceTests
                 bookingsById[booking.Id] = booking;
                 return booking;
             });
-        
+
         MockBookingRepository
             .Setup(r => r.GetById(It.IsAny<Guid>()))
             .Returns((Guid bookingId) => bookingsById[bookingId]);
 
         var service = CreateBookingService();
+
         var created = service.CreateBookingAsync(eventId);
-        bookingsById[created.Id].ConfirmBooking();
+        bookingsById[created.Id].RejectBooking();
 
         var gotten = service.GetBookingByIdAsync(created.Id);
 
-        Assert.Equal(nameof(BookingStatus.Confirmed), gotten.Status);
+        Assert.Equal(nameof(BookingStatus.Rejected), gotten.Status);
         Assert.NotNull(gotten.ProcessedAt);
     }
-
     
     [Fact]
     public void Get_ReleaseSeats_IncreasesAvailableSeats()

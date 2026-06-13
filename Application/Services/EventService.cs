@@ -65,8 +65,11 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
     
     public CreateEventResponse CreateEvent(CreateEventRequest request)
     {
-        var totalSeats = request.TotalSeats ?? 
-                         throw new ValidationException("Общее количество мест обязательно.");
+        if (!request.TotalSeats.HasValue)
+            throw new ValidationException("Общее количество мест обязательно.");
+        
+        if (request.TotalSeats.Value == 0)
+            throw new ValidationException("Общее количество мест должно быть больше нуля.");
         
         var newEvent = eventRepository.Add(new CreateEventParameter
         {
@@ -75,7 +78,7 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
             Description = request.Description,
             StartAt = request.StartAt,
             EndAt = request.EndAt,
-            TotalSeats = totalSeats,
+            TotalSeats = request.TotalSeats.Value,
         });
 
         return new CreateEventResponse
@@ -104,11 +107,5 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
     public void DeleteEvent(Guid eventId)
     {
         eventRepository.Delete(eventId);
-    }
-
-    private static int ValidateTotalSeats(int? totalSeats)
-    {
-        return totalSeats 
-               ?? throw new ValidationException("Общее количество мест обязательно.");
     }
 }
