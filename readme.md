@@ -1,7 +1,19 @@
 # YaPracticumApi
 ## REST API для управления событиями
 
-Проект на .net 9
+## Требования
+- .NET 9 SDK
+- PostgreSQL
+
+Перед запуском необходимо указать строку подключения к PostgreSQL. В файле Web/appsettings.json
+```json
+{
+  "ConnectionStrings": {
+    "Postgres": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=postgres"
+  }
+}
+```
+**Примечание:** Схема базы данных создаётся автоматически при первом запуске приложения через EnsureCreated. Создавать таблицы вручную не нужно.
 
 ### Сборка/запуск
 
@@ -10,6 +22,8 @@ build: ```dotnet build```
 run: ```dotnet run --project Web```
 
 tests: ```dotnet test```
+
+**Тесты:** В тестовом проекте используется InMemory-провайдер Entity Framework Core — PostgreSQL для запуска тестов не требуется.
 
 listening: ```https://localhost:7013```
 
