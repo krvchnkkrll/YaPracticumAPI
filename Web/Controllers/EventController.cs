@@ -40,6 +40,7 @@ public sealed class EventController(
     /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(CreateEventResponse), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreateEventResponse>> CreateEventAsync(
         [FromBody] CreateEventRequest createEventRequest,
         CancellationToken cancellationToken)
