@@ -1,6 +1,6 @@
 using Application.Contracts.Models;
+using Domain.Entities.Bookings;
 using Domain.Entities.Events;
-using Domain.Entities.Events.Parameters;
 using Domain.Models.Pagination;
 
 namespace Persistence.Contracts.Repositories;
@@ -8,38 +8,43 @@ namespace Persistence.Contracts.Repositories;
 public interface IEventRepository
 {
     /// <summary>
-    ///     Получить событие по id
+    ///     Получить событие с отслеживанием изменений.
     /// </summary>
-    Event GetEventById(Guid eventId);
+    Task<Event> GetByIdAsync(Guid eventId, CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Получить событие без отслеживания изменений.
+    /// </summary>
+    Task<Event> GetReadOnlyByIdAsync(Guid eventId, CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Получить страницу событий без отслеживания изменений.
+    /// </summary>
+    Task<PaginatedResult<Event>> GetPaginatedAsync(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Получить все события без отслеживания изменений.
+    /// </summary>
+    Task<IReadOnlyList<Event>> GetAllReadOnlyAsync(CancellationToken cancellationToken);
     
     /// <summary>
-    ///     Получить событие по id
+    ///     Получить все события с отслеживанием изменений. 
     /// </summary>
-    Event? GetEventOrDefaultById(Guid eventId);
-    
-    /// <summary>
-    ///     Получить пагинируемые события
-    /// </summary>
-    PaginatedResult<Event> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery);
+    Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken cancellationToken);
 
     /// <summary>
-    ///     Получить события
+    ///     Добавить бронь к мероприятию
     /// </summary>
-    /// <returns></returns>
-    IList<Event> GetAllEvents();
+    Booking CreateBooking(Event eventEntity);
 
     /// <summary>
-    ///     Добавить событие
+    ///     Добавить новое событие в контекст.
     /// </summary>
-    Event Add(CreateEventParameter parameter);
+    void Add(Event eventEntity);
 
     /// <summary>
-    ///     Обновить событие
+    ///     Удалить событие из контекста.
     /// </summary>
-    void Update(Guid eventId, UpdateEventParameter parameter);
-
-    /// <summary>
-    ///     Удалить событие
-    /// </summary>
-    void Delete(Guid eventId);
+    void Remove(Event eventEntity);
 }

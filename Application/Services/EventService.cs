@@ -4,16 +4,22 @@ using Application.Contracts.Services;
 using Domain.Entities.Events;
 using Domain.Entities.Events.Parameters;
 using Domain.Models.Pagination;
+using Microsoft.EntityFrameworkCore;
+using Persistence.Contracts;
 using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 
-internal sealed class EventService(IEventRepository eventRepository) : IEventService
+internal sealed class EventService(
+    IEventRepository eventRepository,
+    IBookingRepository bookingRepository,
+    IDbContext context) : IEventService
 {
     private const int DefaultPageSize = 10;
     private const int DefaultPage = 1;
     
-    public PaginatedResult<GetEventResponse> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery)
+    public async Task<PaginatedResult<GetEventResponse>> GetPaginatedAsync(GetEventsSearchQuery searchQuery, 
+        PaginationQuery paginationQuery, CancellationToken cancellationToken)
     {
         if (paginationQuery.Page == 0)
             paginationQuery.Page = DefaultPage;
@@ -21,7 +27,7 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
         if (paginationQuery.PageSize == 0)
             paginationQuery.PageSize = DefaultPageSize;
         
-        var paginatedEvents = eventRepository.GetPaginatedEvents(searchQuery, paginationQuery);
+        var paginatedEvents = await eventRepository.GetPaginatedAsync(searchQuery, paginationQuery, cancellationToken);
 
         return new PaginatedResult<GetEventResponse>
         {
@@ -42,45 +48,50 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
         };
     }
 
-    public IList<Event> GetEvents()
+    public async Task<IReadOnlyList<Event>> GetEventsAsync(CancellationToken cancellationToken)
     {
-        return eventRepository.GetAllEvents();
+        return await eventRepository.GetAllAsync(cancellationToken);
     }
 
-    public GetEventResponse GetEvent(Guid eventId)
+    public async Task<GetEventResponse> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        var eventToReturn = eventRepository.GetEventById(eventId);
+        var eventEntity = await eventRepository.GetReadOnlyByIdAsync(eventId, cancellationToken);
         
         return new GetEventResponse
         {
-            Id = eventToReturn.Id,
-            Title = eventToReturn.Title,
-            Description = eventToReturn.Description,
-            StartAt = eventToReturn.StartAt,
-            EndAt = eventToReturn.EndAt,
-            TotalSeats = eventToReturn.TotalSeats,
-            AvailableSeats = eventToReturn.AvailableSeats
+            Id = eventEntity.Id,
+            Title = eventEntity.Title,
+            Description = eventEntity.Description,
+            StartAt = eventEntity.StartAt,
+            EndAt = eventEntity.EndAt,
+            TotalSeats = eventEntity.TotalSeats,
+            AvailableSeats = eventEntity.AvailableSeats
         };
     }
     
-    public CreateEventResponse CreateEvent(CreateEventRequest request)
+    public async Task<CreateEventResponse> CreateEventAsync(CreateEventRequest request, CancellationToken cancellationToken)
     {
-        if (!request.TotalSeats.HasValue)
-            throw new ValidationException("Общее количество мест обязательно.");
-        
-        if (request.TotalSeats.Value == 0)
-            throw new ValidationException("Общее количество мест должно быть больше нуля.");
-        
-        var newEvent = eventRepository.Add(new CreateEventParameter
+        switch (request.TotalSeats)
         {
-            Id = Guid.CreateVersion7(),
+            case null:
+                throw new ValidationException("Общее количество мест обязательно.");
+            case 0:
+                throw new ValidationException("Общее количество мест должно быть больше нуля.");
+        }
+
+        var newEvent = Event.Create(new CreateEventParameter
+        {
             Title = request.Title,
             Description = request.Description,
             StartAt = request.StartAt,
             EndAt = request.EndAt,
-            TotalSeats = request.TotalSeats.Value,
+            TotalSeats = request.TotalSeats.Value
         });
+        
+        eventRepository.Add(newEvent);
 
+        await context.SaveChangesAsync(cancellationToken);
+        
         return new CreateEventResponse
         {
             Id = newEvent.Id,
@@ -93,9 +104,11 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
         };
     }
 
-    public void UpdateEvent(Guid eventId, UpdateEventRequest request)
+    public async Task UpdateEventAsync(Guid eventId, UpdateEventRequest request, CancellationToken cancellationToken)
     {
-        eventRepository.Update(eventId, new UpdateEventParameter
+        var eventEntity = await eventRepository.GetByIdAsync(eventId, cancellationToken);
+        
+        eventEntity.Update(new UpdateEventParameter
         {
             Title = request.Title,
             Description = request.Description,
@@ -104,8 +117,21 @@ internal sealed class EventService(IEventRepository eventRepository) : IEventSer
         });
     }
 
-    public void DeleteEvent(Guid eventId)
+    public async Task DeleteEventAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        eventRepository.Delete(eventId);
+        var eventEntity = await GetByIdIncludeBookingAsync(eventId, cancellationToken);
+        
+        bookingRepository.Remove(eventEntity.Bookings);
+        eventRepository.Remove(eventEntity);
+        
+        await context.SaveChangesAsync(cancellationToken);
+    }
+
+    private async Task<Event> GetByIdIncludeBookingAsync(Guid eventId, CancellationToken cancellationToken)
+    {
+        return await context.Events
+            .Include(e => e.Bookings)
+            .SingleOrDefaultAsync(e => e.Id == eventId, cancellationToken) ?? 
+               throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
     }
 }

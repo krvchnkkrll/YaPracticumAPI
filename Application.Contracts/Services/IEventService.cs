@@ -9,30 +9,31 @@ public interface IEventService
     /// <summary>
     ///     Получить пагинируемые события
     /// </summary>
-    PaginatedResult<GetEventResponse> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery);
-    
+    Task<PaginatedResult<GetEventResponse>> GetPaginatedAsync(GetEventsSearchQuery searchQuery, 
+        PaginationQuery paginationQuery, CancellationToken cancellationToken);
+
     /// <summary>
     ///     Получить все события
     /// </summary>
-    IList<Event> GetEvents();
-    
+    Task<IReadOnlyList<Event>> GetEventsAsync(CancellationToken cancellationToken);
+
     /// <summary>
     ///     Получить событие
     /// </summary>
-    GetEventResponse? GetEvent(Guid eventId);
+    Task<GetEventResponse> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken);
     
     /// <summary>
     ///     Создать событие
     /// </summary>
-    CreateEventResponse CreateEvent(CreateEventRequest request);
-    
+    Task<CreateEventResponse> CreateEventAsync(CreateEventRequest request, CancellationToken cancellationToken);
+
     /// <summary>
     ///     Обновить событие
     /// </summary>
-    void UpdateEvent(Guid eventId, UpdateEventRequest request);
-    
+    Task UpdateEventAsync(Guid eventId, UpdateEventRequest request, CancellationToken cancellationToken);
+
     /// <summary>
     ///     Удалить событие
     /// </summary>
-    void DeleteEvent(Guid eventId);
+    Task DeleteEventAsync(Guid eventId, CancellationToken cancellationToken);
 }

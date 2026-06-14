@@ -1,5 +1,5 @@
 using Domain.Entities.Bookings;
-using Domain.Entities.Bookings.Parameters;
+using Domain.Enums;
 
 namespace Persistence.Contracts.Repositories;
 
@@ -8,15 +8,16 @@ public interface IBookingRepository
     /// <summary>
     ///     Получить бронь по идентификатору
     /// </summary>
-    Booking GetById(Guid bookingId);
-    
-    /// <summary>
-    ///     Добавить бронь
-    /// </summary>
-    Booking Create(CreateBookingParameters parameters);
+    Task<Booking> GetByIdAsync(Guid bookingId, CancellationToken cancellationToken);
 
     /// <summary>
-    ///     Получить все созданные брони
+    ///     Получить брони с соответствующими статусами
     /// </summary>
-    List<Booking> GetPendingBooks();
+    Task<IReadOnlyList<Booking>> GetBookingsByStatusesAsync(BookingStatus[] statuses,
+        CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Удалить брони 
+    /// </summary>
+    void Remove(IEnumerable<Booking> bookings);
 }

@@ -1,3 +1,5 @@
+using Domain.Entities.Bookings;
+using Domain.Entities.Bookings.Parameters;
 using Domain.Entities.Events.Parameters;
 
 namespace Domain.Entities.Events;
@@ -16,7 +18,6 @@ public sealed class Event
             TotalSeats = parameter.TotalSeats,
         });
         
-        Id = parameter.Id;
         Title = parameter.Title;
         Description = parameter.Description;
         StartAt = parameter.StartAt;
@@ -28,7 +29,7 @@ public sealed class Event
     /// <summary>
     ///     Идентификатор
     /// </summary>
-    public Guid Id { get; private set; }
+    public Guid Id { get; private set; } = Guid.CreateVersion7();
 
     /// <summary>
     ///     Название события
@@ -59,7 +60,14 @@ public sealed class Event
     ///     Доступное количество мест на событии
     /// </summary>
     public int AvailableSeats { get; private set; }
+    
+    private readonly List<Booking> _bookings = [];
 
+    /// <summary>
+    ///     Брони
+    /// </summary>
+    public IReadOnlyCollection<Booking> Bookings => _bookings;
+    
     /// <summary>
     ///     Создать событие
     /// </summary>
@@ -83,6 +91,19 @@ public sealed class Event
         EndAt = parameter.EndAt;
     }
     
+    /// <summary>
+    ///     Добавить 
+    /// </summary>
+    public Booking CreateBooking()
+    { 
+        var booking = Booking.Create(new CreateBookingParameters
+        {
+            EventId = Id,
+        });
+        _bookings.Add(booking);
+        return booking;
+    }
+    
     private static void ValidateForCreate(ValidateForCreateParameter forCreateParameter)
     {
         if (string.IsNullOrWhiteSpace(forCreateParameter.Title))
@@ -93,6 +114,9 @@ public sealed class Event
 
         if (forCreateParameter.TotalSeats < 0)
             throw new ArgumentException("Общее количество мест на событии не может быть меньше нуля.");
+        
+        if (forCreateParameter.TotalSeats == 0)
+            throw new ArgumentException("Общее количество мест на событии не может быть равно нулю.");
     }
     
     private static void ValidateForUpdate(ValidateForUpdateParameter forCreateParameter)

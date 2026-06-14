@@ -7,10 +7,10 @@ public interface IBookingService
     /// <summary>
     ///     Добавить бронь 
     /// </summary>
-    CreateBookingResponse CreateBookingAsync(Guid eventId);
+    Task<CreateBookingResponse> CreateBookingAsync(Guid eventId, CancellationToken cancellationToken);
     
     /// <summary>
     ///     Получить бронь по идентификатору
     /// </summary>
-    GetBookingResponse GetBookingByIdAsync(Guid bookingId);
+    Task<GetBookingResponse> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken);
 }

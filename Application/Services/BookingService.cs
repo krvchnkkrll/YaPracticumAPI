@@ -1,34 +1,35 @@
 using Application.Contracts.Models;
 using Application.Contracts.Services;
-using Domain.Entities.Bookings.Parameters;
 using Domain.Exceptions;
+using Persistence.Contracts;
 using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 
 internal sealed class BookingService(
     IBookingRepository bookingRepository,
-    IEventRepository eventRepository) : IBookingService
+    IEventRepository eventRepository,
+    IDbContext context) : IBookingService
 {
-    private readonly Lock _bookingLock = new();
+    private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
     
-    public CreateBookingResponse CreateBookingAsync(Guid eventId)
+    public async Task<CreateBookingResponse> CreateBookingAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        lock (_bookingLock)
+        try
         {
-            var eventEntity = eventRepository.GetEventById(eventId);
-
-            var result = eventEntity.TryReserveSeats();
-
-            if (!result)
-                throw new NoAvailableSeatsException();
+            await SemaphoreSlim.WaitAsync(cancellationToken);
             
-            var booking = bookingRepository.Create(new CreateBookingParameters
-            {
-                Id = Guid.CreateVersion7(),
-                EventId = eventId
-            });
+            var eventEntity = await eventRepository.GetByIdAsync(eventId, cancellationToken);
+           
+            var reserveResult = eventEntity.TryReserveSeats();
+            
+            if (!reserveResult)
+                throw new NoAvailableSeatsException();
 
+            var booking = eventRepository.CreateBooking(eventEntity);
+            
+            await context.SaveChangesAsync(cancellationToken);
+            
             return new CreateBookingResponse
             {
                 Id = booking.Id,
@@ -36,11 +37,15 @@ internal sealed class BookingService(
                 Status = booking.Status,
             };
         }
+        finally
+        {
+            SemaphoreSlim.Release();
+        }
     }
 
-    public GetBookingResponse GetBookingByIdAsync(Guid bookingId)
+    public async Task<GetBookingResponse> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken)
     {
-        var booking = bookingRepository.GetById(bookingId);
+        var booking = await bookingRepository.GetByIdAsync(bookingId, cancellationToken);
         
         if (ReferenceEquals(booking, null))
             throw new KeyNotFoundException($"Бронь с идентификатором {bookingId} не найдено.");

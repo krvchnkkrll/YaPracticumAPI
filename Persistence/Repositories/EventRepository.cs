@@ -1,20 +1,21 @@
 using Application.Contracts.Models;
+using Domain.Entities.Bookings;
 using Domain.Entities.Events;
-using Domain.Entities.Events.Parameters;
 using Domain.Models.Pagination;
+using Microsoft.EntityFrameworkCore;
+using Persistence.Contracts;
 using Persistence.Contracts.Repositories;
-using Persistence.Contracts.Storages;
 
 namespace Persistence.Repositories;
 
-internal sealed class EventRepository(IEventStorage eventStorage) : IEventRepository
+internal sealed class EventRepository(IDbContext context) : IEventRepository
 {
     /// <summary>
     ///     Получить событие по id
     /// </summary>
-    public Event GetEventById(Guid eventId)
+    public async Task<Event> GetReadOnlyByIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        var eventToReturn = GetEventOrDefaultById(eventId);
+        var eventToReturn = await GetByIdOrDefaultReadOnlyAsync(eventId, cancellationToken);
         
         if (ReferenceEquals(eventToReturn, null))
             throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
@@ -22,19 +23,10 @@ internal sealed class EventRepository(IEventStorage eventStorage) : IEventReposi
         return eventToReturn;
     }
 
-    public Event? GetEventOrDefaultById(Guid eventId)
+    public async Task<PaginatedResult<Event>> GetPaginatedAsync(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery,
+        CancellationToken cancellationToken)
     {
-        var eventToReturn = eventStorage.Events.SingleOrDefault(e => e.Id == eventId);
-        
-        return eventToReturn;
-    }
-
-    /// <summary>
-    ///     Получить все события
-    /// </summary>
-    public PaginatedResult<Event> GetPaginatedEvents(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery)
-    {
-        var query = eventStorage.Events.AsQueryable();
+        var query = context.Events.AsQueryable();
 
         #region  Filters
 
@@ -55,7 +47,7 @@ internal sealed class EventRepository(IEventStorage eventStorage) : IEventReposi
 
         #region Pagination
         
-        var totalItems = query.Count();
+        var totalItems = await query.CountAsync(cancellationToken);
         
         var totalPages = totalItems == 0 
             ? 0 
@@ -63,11 +55,12 @@ internal sealed class EventRepository(IEventStorage eventStorage) : IEventReposi
         
         var skip = (paginationQuery.Page - 1) * paginationQuery.PageSize;
         
-        var items = query
+        var items = await query
+            .AsNoTracking()
             .OrderBy(e => e.Id)
             .Skip(skip)
             .Take(paginationQuery.PageSize)
-            .ToArray();
+            .ToArrayAsync(cancellationToken);
         
         #endregion
         
@@ -81,44 +74,48 @@ internal sealed class EventRepository(IEventStorage eventStorage) : IEventReposi
         };
     }
 
-    /// <summary>
-    ///     Получить все события
-    /// </summary>
-    /// <returns></returns>
-    public IList<Event> GetAllEvents()
+    public async Task<IReadOnlyList<Event>> GetAllReadOnlyAsync(CancellationToken cancellationToken)
     {
-        return eventStorage.Events.ToList();
+        return await context.Events.AsNoTracking().ToListAsync(cancellationToken);
     }
 
-    /// <summary>
-    ///     Добавить событие
-    /// </summary>
-    public Event Add(CreateEventParameter parameter)
+    public async Task<IReadOnlyList<Event>> GetAllAsync(CancellationToken cancellationToken)
     {
-        var newEvent = Event.Create(parameter);
-        
-        eventStorage.Events.Add(newEvent);
-        
-        return newEvent;
+        return await context.Events.ToListAsync(cancellationToken);
     }
 
-    /// <summary>
-    ///     Обновить событие
-    /// </summary>
-    public void Update(Guid eventId, UpdateEventParameter parameter)
+    public Booking CreateBooking(Event eventEntity)
     {
-        var eventToUpdate = GetEventById(eventId);
-        
-        eventToUpdate.Update(parameter);
+        return eventEntity.CreateBooking();
     }
 
-    /// <summary>
-    ///     Удалить событие
-    /// </summary>
-    public void Delete(Guid eventId)
+    public void Add(Event eventEntity)
     {
-        var eventToRemove = GetEventById(eventId);
+        context.Events.Add(eventEntity);
+    }
 
-        eventStorage.Events.Remove(eventToRemove);
+    public void Remove(Event eventEntity)
+    {
+        context.Events.Remove(eventEntity);
+    }
+    
+    public async Task<Event> GetByIdAsync(Guid eventId, CancellationToken cancellationToken)
+    {
+        var eventToReturn = await GetByIdOrDefaultAsync(eventId, cancellationToken);
+        
+        if (ReferenceEquals(eventToReturn, null))
+            throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
+        
+        return eventToReturn;
+    }
+
+    private async Task<Event?> GetByIdOrDefaultAsync(Guid eventId, CancellationToken cancellationToken)
+    {
+        return await context.Events.SingleOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+    }
+    
+    private async Task<Event?> GetByIdOrDefaultReadOnlyAsync(Guid eventId, CancellationToken cancellationToken)
+    {
+        return await context.Events.AsNoTracking().SingleOrDefaultAsync(e => e.Id == eventId, cancellationToken);
     }
 }
