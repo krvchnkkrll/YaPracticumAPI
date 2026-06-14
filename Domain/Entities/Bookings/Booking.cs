@@ -12,7 +12,7 @@ public sealed class Booking
     {
  
         EventId = parameters.EventId;
-        CreatedAt = DateTime.Now;
+        CreatedAt = DateTime.UtcNow;
         Status = BookingStatus.Pending;
     }
     
@@ -59,7 +59,7 @@ public sealed class Booking
     public void ConfirmBooking()
     {
         Status = BookingStatus.Confirmed;
-        ProcessedAt = DateTime.Now;
+        ProcessedAt = DateTime.UtcNow;
     }
     
     /// <summary>
@@ -68,6 +68,6 @@ public sealed class Booking
     public void RejectBooking()
     {
         Status = BookingStatus.Rejected;
-        ProcessedAt = DateTime.Now;
+        ProcessedAt = DateTime.UtcNow;
     }
 }
