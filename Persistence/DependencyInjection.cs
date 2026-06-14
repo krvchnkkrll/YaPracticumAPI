@@ -5,9 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Persistence.Contracts;
 using Persistence.Contracts.Repositories;
-using Persistence.Contracts.Storages;
 using Persistence.Repositories;
-using Persistence.Storages;
 
 namespace Persistence;
 
@@ -42,12 +40,9 @@ public static class DependencyInjection
         builder.Services.AddScoped<IDbContext>(
             provider => provider.GetRequiredService<AppDbContext>());
 
-        builder.Services.AddScoped<IDbContextFactory, DbContextFactory>();
+        builder.Services.AddSingleton<IDbContextFactory, DbContextFactory>();
 
         builder.Services.AddScoped<IEventRepository, EventRepository>();
         builder.Services.AddScoped<IBookingRepository, BookingRepository>();
-        
-        builder.Services.AddSingleton<IEventStorage, EventStorage>();
-        builder.Services.AddSingleton<IBookingStorage, BookingStorage>();
     }
 }

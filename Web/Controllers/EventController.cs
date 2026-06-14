@@ -15,9 +15,12 @@ public sealed class EventController(
     /// </summary>
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedResult<GetEventResponse>), StatusCodes.Status200OK)]
-    public ActionResult<PaginatedResult<GetEventResponse>> GetEvents([FromQuery] GetEventsSearchQuery searchQuery, [FromQuery] PaginationQuery paginationQuery)
+    public async Task<ActionResult<PaginatedResult<GetEventResponse>>> GetEventsAsync(
+        [FromQuery] GetEventsSearchQuery searchQuery, 
+        [FromQuery] PaginationQuery paginationQuery,
+        CancellationToken cancellationToken)
     {
-        return Ok(eventService.GetPaginatedEvents(searchQuery, paginationQuery));
+        return Ok(await eventService.GetPaginatedAsync(searchQuery, paginationQuery, cancellationToken));
     }
 
     /// <summary>
@@ -26,9 +29,9 @@ public sealed class EventController(
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(GetEventResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult<GetEventResponse> GetEvent([FromRoute] Guid id)
+    public async Task<ActionResult<GetEventResponse>> GetEventAsync([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        return Ok(eventService.GetEvent(id));
+        return Ok(await eventService.GetEventByIdAsync(id, cancellationToken));
     }
 
     /// <summary>
@@ -36,10 +39,18 @@ public sealed class EventController(
     /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(CreateEventResponse), StatusCodes.Status201Created)]
-    public ActionResult<CreateEventResponse> CreateEvent([FromBody] CreateEventRequest createEventRequest)
+    public async Task<ActionResult<CreateEventResponse>> CreateEventAsync(
+        [FromBody] CreateEventRequest createEventRequest,
+        CancellationToken cancellationToken)
     {
-        var result = eventService.CreateEvent(createEventRequest);
-        return CreatedAtAction(nameof(GetEvent), new { id = result.Id }, result);
+        var eventEntity = await eventService.CreateEventAsync(
+            createEventRequest,
+            cancellationToken);
+
+        return CreatedAtRoute(
+            nameof(GetEventAsync),
+            new { id = eventEntity.Id },
+            eventEntity);
     }
     
     /// <summary>
@@ -49,13 +60,14 @@ public sealed class EventController(
     [ProducesResponseType(typeof(CreateBookingResponse), StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public ActionResult<CreateBookingResponse> CreateBooking([FromRoute] Guid id)
+    public async Task<ActionResult<CreateBookingResponse>> CreateBookingAsync([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        var result = bookingService.CreateBookingAsync(id);
-        return AcceptedAtAction(nameof(BookingController.GetBooking), 
+        var eventEntity = await bookingService.CreateBookingAsync(id, cancellationToken);
+        
+        return AcceptedAtAction(nameof(BookingController.GetBookingAsync), 
             nameof(BookingController).Replace("Controller", ""),
-            new { id = result.Id },
-            result);
+            new { id = eventEntity.Id },
+            eventEntity);
     }
     
     /// <summary>
@@ -64,9 +76,10 @@ public sealed class EventController(
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult UpdateEvent([FromRoute] Guid id, [FromBody] UpdateEventRequest updateEventRequest)
+    public async Task<ActionResult> UpdateEventAsync([FromRoute] Guid id, 
+        [FromBody] UpdateEventRequest updateEventRequest, CancellationToken cancellationToken)
     {
-        eventService.UpdateEvent(id, updateEventRequest);
+        await eventService.UpdateEventAsync(id, updateEventRequest, cancellationToken);
         return NoContent();
     }
 
@@ -76,9 +89,9 @@ public sealed class EventController(
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public ActionResult DeleteEvent([FromRoute] Guid id)
+    public async Task<ActionResult> DeleteEvent([FromRoute] Guid id, CancellationToken cancellationToken)
     {
-        eventService.DeleteEvent(id);
+        await eventService.DeleteEventAsync(id, cancellationToken);
         return NoContent();
     }
 }

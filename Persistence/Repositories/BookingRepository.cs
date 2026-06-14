@@ -1,38 +1,32 @@
 using Domain.Entities.Bookings;
-using Domain.Entities.Bookings.Parameters;
 using Domain.Enums;
+using Microsoft.EntityFrameworkCore;
+using Persistence.Contracts;
 using Persistence.Contracts.Repositories;
-using Persistence.Contracts.Storages;
 
 namespace Persistence.Repositories;
 
-internal sealed class BookingRepository(
-    IBookingStorage bookingStorage,
-    IEventRepository eventRepository) : IBookingRepository
+internal sealed class BookingRepository(IDbContext context) : IBookingRepository
 {
-    public Booking GetById(Guid bookingId)
+    public async Task<Booking> GetByIdAsync(Guid bookingId, CancellationToken cancellationToken)
     {
-        var eventToReturn = bookingStorage.Bookings.SingleOrDefault(b => b.Id == bookingId);
+        var booking = await GetByIdOrDefaultAsync(bookingId, cancellationToken);
         
-        if (ReferenceEquals(eventToReturn, null))
+        if (ReferenceEquals(booking, null))
             throw new KeyNotFoundException($"Бронь с идентификатором {bookingId} не найдено.");
         
-        return eventToReturn;
-    }
-    
-    public List<Booking> GetPendingBooks()
-    {
-        return bookingStorage.Bookings.Where(b => b.Status == BookingStatus.Pending).ToList();
+        return booking;
     }
 
-    public Booking Create(CreateBookingParameters parameters)
+    private async Task<Booking?> GetByIdOrDefaultAsync(Guid bookingId, CancellationToken cancellationToken)
     {
-        _ = eventRepository.GetEventById(parameters.EventId);
-        
-        var booking = Booking.Create(parameters);
-        
-        bookingStorage.Bookings.Add(booking);
-        
-        return booking;
+        return await context.Bookings.SingleOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
+    }
+    
+    public async Task<IReadOnlyList<Booking>> GetBookingsByStatusesAsync(BookingStatus[] statuses, CancellationToken cancellationToken)
+    {
+        return await context.Bookings
+            .Where(b => statuses.Contains(b.Status))
+            .ToArrayAsync(cancellationToken);
     }
 }

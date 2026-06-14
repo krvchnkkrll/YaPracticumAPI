@@ -10,7 +10,7 @@ public sealed class Booking
 
     private Booking(CreateBookingParameters parameters) : this()
     {
-        Id = parameters.Id;
+ 
         EventId = parameters.EventId;
         CreatedAt = DateTime.Now;
         Status = BookingStatus.Pending;
@@ -19,7 +19,7 @@ public sealed class Booking
     /// <summary>
     ///     Идентификатор
     /// </summary>
-    public Guid Id { get; private set; }
+    public Guid Id { get; private set; } = Guid.CreateVersion7();
     
     /// <summary>
     ///     Статус брони
@@ -51,7 +51,7 @@ public sealed class Booking
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    public static Booking Create(CreateBookingParameters parameters) => new (parameters);
+    internal static Booking Create(CreateBookingParameters parameters) => new (parameters);
 
     /// <summary>
     ///     Подтвердить бронь
