@@ -10,10 +10,10 @@ public sealed class BookingController(IBookingService bookingService) : AppContr
     /// <summary>
     ///     Получить бронь
     /// </summary>
-    [HttpGet("{id}")]
-    [ProducesResponseType(typeof(GetBookingResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<GetBookingResponse>> GetBookingAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    [HttpGet("{id:guid}", Name = nameof(GetBookingByIdAsync))]
+    public async Task<ActionResult<GetBookingResponse>> GetBookingByIdAsync(
+        [FromRoute] Guid id,
+        CancellationToken cancellationToken)
     {
         return Ok(await bookingService.GetBookingByIdAsync(id, cancellationToken));
     }

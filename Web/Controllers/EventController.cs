@@ -16,7 +16,7 @@ public sealed class EventController(
     [HttpGet]
     [ProducesResponseType(typeof(PaginatedResult<GetEventResponse>), StatusCodes.Status200OK)]
     public async Task<ActionResult<PaginatedResult<GetEventResponse>>> GetEventsAsync(
-        [FromQuery] GetEventsSearchQuery searchQuery, 
+        [FromQuery] GetEventsSearchQuery searchQuery,
         [FromQuery] PaginationQuery paginationQuery,
         CancellationToken cancellationToken)
     {
@@ -26,10 +26,11 @@ public sealed class EventController(
     /// <summary>
     ///     Получить событие
     /// </summary>
-    [HttpGet("{id}")]
+    [HttpGet("{id}", Name = nameof(GetEventAsync))]
     [ProducesResponseType(typeof(GetEventResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<GetEventResponse>> GetEventAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<GetEventResponse>> GetEventAsync([FromRoute] Guid id,
+        CancellationToken cancellationToken)
     {
         return Ok(await eventService.GetEventByIdAsync(id, cancellationToken));
     }
@@ -52,7 +53,7 @@ public sealed class EventController(
             new { id = eventEntity.Id },
             eventEntity);
     }
-    
+
     /// <summary>
     ///     Создать бронь
     /// </summary>
@@ -60,23 +61,24 @@ public sealed class EventController(
     [ProducesResponseType(typeof(CreateBookingResponse), StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
-    public async Task<ActionResult<CreateBookingResponse>> CreateBookingAsync([FromRoute] Guid id, CancellationToken cancellationToken)
+    public async Task<ActionResult<CreateBookingResponse>> CreateBookingAsync([FromRoute] Guid id,
+        CancellationToken cancellationToken)
     {
         var eventEntity = await bookingService.CreateBookingAsync(id, cancellationToken);
-        
-        return AcceptedAtAction(nameof(BookingController.GetBookingAsync), 
-            nameof(BookingController).Replace("Controller", ""),
+
+        return AcceptedAtRoute(
+            nameof(BookingController.GetBookingByIdAsync),
             new { id = eventEntity.Id },
             eventEntity);
     }
-    
+
     /// <summary>
     ///     Изменить событие
     /// </summary>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult> UpdateEventAsync([FromRoute] Guid id, 
+    public async Task<ActionResult> UpdateEventAsync([FromRoute] Guid id,
         [FromBody] UpdateEventRequest updateEventRequest, CancellationToken cancellationToken)
     {
         await eventService.UpdateEventAsync(id, updateEventRequest, cancellationToken);
