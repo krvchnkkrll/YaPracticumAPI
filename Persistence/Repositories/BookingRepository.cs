@@ -29,4 +29,9 @@ internal sealed class BookingRepository(IDbContext context) : IBookingRepository
             .Where(b => statuses.Contains(b.Status))
             .ToArrayAsync(cancellationToken);
     }
+    
+    public void Remove(IEnumerable<Booking> bookings)
+    {
+        context.Bookings.RemoveRange(bookings);
+    }
 }

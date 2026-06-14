@@ -15,4 +15,9 @@ public interface IBookingRepository
     /// </summary>
     Task<IReadOnlyList<Booking>> GetBookingsByStatusesAsync(BookingStatus[] statuses,
         CancellationToken cancellationToken);
+
+    /// <summary>
+    ///     Удалить брони 
+    /// </summary>
+    void Remove(IEnumerable<Booking> bookings);
 }
