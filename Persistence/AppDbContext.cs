@@ -6,7 +6,7 @@ using Persistence.Contracts;
 
 namespace Persistence;
 
-internal sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IDbContext
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IDbContext
 {
     public DbSet<Event> Events { get; set; }
     
