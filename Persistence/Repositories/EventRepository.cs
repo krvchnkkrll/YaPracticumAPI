@@ -8,7 +8,7 @@ using Persistence.Contracts.Repositories;
 
 namespace Persistence.Repositories;
 
-internal sealed class EventRepository(IDbContext context) : IEventRepository
+public sealed class EventRepository(IDbContext context) : IEventRepository
 {
     /// <summary>
     ///     Получить событие по id
@@ -16,28 +16,31 @@ internal sealed class EventRepository(IDbContext context) : IEventRepository
     public async Task<Event> GetReadOnlyByIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
         var eventToReturn = await GetByIdOrDefaultReadOnlyAsync(eventId, cancellationToken);
-        
+
         if (ReferenceEquals(eventToReturn, null))
             throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
-        
+
         return eventToReturn;
     }
 
-    public async Task<PaginatedResult<Event>> GetPaginatedAsync(GetEventsSearchQuery searchQuery, PaginationQuery paginationQuery,
+    public async Task<PaginatedResult<Event>> GetPaginatedAsync(GetEventsSearchQuery searchQuery,
+        PaginationQuery paginationQuery,
         CancellationToken cancellationToken)
     {
         var query = context.Events.AsQueryable();
 
-        #region  Filters
+        #region Filters
 
         if (!string.IsNullOrEmpty(searchQuery.Title))
         {
             query = query.Where(e => e.Title.Contains(searchQuery.Title, StringComparison.InvariantCultureIgnoreCase));
         }
+
         if (searchQuery.From.HasValue)
         {
             query = query.Where(e => e.StartAt >= searchQuery.From.Value);
         }
+
         if (searchQuery.To.HasValue)
         {
             query = query.Where(e => e.EndAt <= searchQuery.To.Value);
@@ -46,24 +49,24 @@ internal sealed class EventRepository(IDbContext context) : IEventRepository
         #endregion
 
         #region Pagination
-        
+
         var totalItems = await query.CountAsync(cancellationToken);
-        
-        var totalPages = totalItems == 0 
-            ? 0 
-            : (int)Math.Ceiling(totalItems / (double) paginationQuery.PageSize);
-        
+
+        var totalPages = totalItems == 0
+            ? 0
+            : (int)Math.Ceiling(totalItems / (double)paginationQuery.PageSize);
+
         var skip = (paginationQuery.Page - 1) * paginationQuery.PageSize;
-        
+
         var items = await query
             .AsNoTracking()
             .OrderBy(e => e.Id)
             .Skip(skip)
             .Take(paginationQuery.PageSize)
             .ToArrayAsync(cancellationToken);
-        
+
         #endregion
-        
+
         return new PaginatedResult<Event>
         {
             Items = items,
@@ -98,14 +101,14 @@ internal sealed class EventRepository(IDbContext context) : IEventRepository
     {
         context.Events.Remove(eventEntity);
     }
-    
+
     public async Task<Event> GetByIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
         var eventToReturn = await GetByIdOrDefaultAsync(eventId, cancellationToken);
-        
+
         if (ReferenceEquals(eventToReturn, null))
             throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
-        
+
         return eventToReturn;
     }
 
@@ -113,9 +116,22 @@ internal sealed class EventRepository(IDbContext context) : IEventRepository
     {
         return await context.Events.SingleOrDefaultAsync(e => e.Id == eventId, cancellationToken);
     }
-    
+
     private async Task<Event?> GetByIdOrDefaultReadOnlyAsync(Guid eventId, CancellationToken cancellationToken)
     {
         return await context.Events.AsNoTracking().SingleOrDefaultAsync(e => e.Id == eventId, cancellationToken);
+    }
+
+    public async Task<Event> GetByIdWithIncludeBookingsAsync(Guid eventId, CancellationToken cancellationToken)
+    {
+        return await context.Events
+                   .Include(e => e.Bookings)
+                   .SingleOrDefaultAsync(e => e.Id == eventId, cancellationToken) ??
+               throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
+    }
+    
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

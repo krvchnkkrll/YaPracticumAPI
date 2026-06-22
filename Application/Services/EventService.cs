@@ -4,16 +4,13 @@ using Application.Contracts.Services;
 using Domain.Entities.Events;
 using Domain.Entities.Events.Parameters;
 using Domain.Models.Pagination;
-using Microsoft.EntityFrameworkCore;
-using Persistence.Contracts;
 using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 
 internal sealed class EventService(
     IEventRepository eventRepository,
-    IBookingRepository bookingRepository,
-    IDbContext context) : IEventService
+    IBookingRepository bookingRepository) : IEventService
 {
     private const int DefaultPageSize = 10;
     private const int DefaultPage = 1;
@@ -90,7 +87,7 @@ internal sealed class EventService(
         
         eventRepository.Add(newEvent);
 
-        await context.SaveChangesAsync(cancellationToken);
+        await eventRepository.SaveChangesAsync(cancellationToken);
         
         return new CreateEventResponse
         {
@@ -119,19 +116,11 @@ internal sealed class EventService(
 
     public async Task DeleteEventAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        var eventEntity = await GetByIdIncludeBookingAsync(eventId, cancellationToken);
+        var eventEntity = await eventRepository.GetByIdWithIncludeBookingsAsync(eventId, cancellationToken);
         
         bookingRepository.Remove(eventEntity.Bookings);
         eventRepository.Remove(eventEntity);
         
-        await context.SaveChangesAsync(cancellationToken);
-    }
-
-    private async Task<Event> GetByIdIncludeBookingAsync(Guid eventId, CancellationToken cancellationToken)
-    {
-        return await context.Events
-            .Include(e => e.Bookings)
-            .SingleOrDefaultAsync(e => e.Id == eventId, cancellationToken) ?? 
-               throw new KeyNotFoundException($"Событие с идентификатором {eventId} не найдено.");
+        await eventRepository.SaveChangesAsync(cancellationToken);
     }
 }

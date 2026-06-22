@@ -6,7 +6,7 @@ using Persistence.Contracts.Repositories;
 
 namespace Persistence.Repositories;
 
-internal sealed class BookingRepository(IDbContext context) : IBookingRepository
+public sealed class BookingRepository(IDbContext context) : IBookingRepository
 {
     public async Task<Booking> GetByIdAsync(Guid bookingId, CancellationToken cancellationToken)
     {
@@ -33,5 +33,10 @@ internal sealed class BookingRepository(IDbContext context) : IBookingRepository
     public void Remove(IEnumerable<Booking> bookings)
     {
         context.Bookings.RemoveRange(bookings);
+    }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

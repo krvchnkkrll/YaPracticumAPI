@@ -20,4 +20,6 @@ public interface IBookingRepository
     ///     Удалить брони 
     /// </summary>
     void Remove(IEnumerable<Booking> bookings);
+    
+    Task SaveChangesAsync(CancellationToken cancellationToken);
 }
