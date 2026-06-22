@@ -362,6 +362,8 @@ public sealed class EventServiceTests
             .Should()
             .ThrowAsync<ArgumentException>();
     }
+    
+    
 
     private async Task<List<Event>> SeedEventsAsync()
     {
