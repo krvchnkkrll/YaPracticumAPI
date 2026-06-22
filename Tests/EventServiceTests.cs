@@ -36,6 +36,7 @@ public sealed class EventServiceTests
             options.UseInMemoryDatabase(dbName));
 
         services.AddScoped<IDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IEventService, EventService>();
 
