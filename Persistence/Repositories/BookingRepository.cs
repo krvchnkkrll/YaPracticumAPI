@@ -40,6 +40,13 @@ public sealed class BookingRepository(IDbContext context) : IBookingRepository
         context.Bookings.RemoveRange(bookings);
     }
 
+    public async Task<Booking?> GetBookingOrDefaultIncludeEventAsync(Guid bookingId, CancellationToken cancellationToken)
+    {
+        return await context.Bookings
+            .Include(b => b.Event)
+            .SingleOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         await context.SaveChangesAsync(cancellationToken);
