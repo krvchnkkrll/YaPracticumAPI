@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Persistence;
 using Testcontainers.PostgreSql;
 
@@ -25,13 +26,19 @@ internal sealed class PostgreSqlFixture : IAsyncLifetime
         await _container.DisposeAsync();
     }
 
-    public AppDbContext CreateDbContext()
+    public async Task<AppDbContext> CreateDbContext()
     {
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
-        optionsBuilder.UseNpgsql(ConnectionString);
+        optionsBuilder
+            .UseSnakeCaseNamingConvention()
+            .UseNpgsql(ConnectionString, npgsql =>
+            {
+                npgsql.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
+                npgsql.MigrationsHistoryTable(HistoryRepository.DefaultTableName);
+            });
 
         var context = new AppDbContext(optionsBuilder.Options);
-        context.Database.EnsureCreated();
+        await context.Database.MigrateAsync();
 
         return context;
     }

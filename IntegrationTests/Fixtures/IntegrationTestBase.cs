@@ -16,7 +16,7 @@ public abstract class IntegrationTestBase : IAsyncLifetime
         PostgreSqlFixture = new PostgreSqlFixture();
         await PostgreSqlFixture.InitializeAsync();
 
-        DbContext = PostgreSqlFixture.CreateDbContext();
+        DbContext = await PostgreSqlFixture.CreateDbContext();
 
         EventRepository = new EventRepository(DbContext);
         BookingRepository = new BookingRepository(DbContext);
