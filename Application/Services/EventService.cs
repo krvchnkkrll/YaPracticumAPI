@@ -101,7 +101,7 @@ internal sealed class EventService(
         };
     }
 
-    public async Task UpdateEventAsync(Guid eventId, UpdateEventRequest request, CancellationToken cancellationToken)
+    public async Task<UpdateEventResponse> UpdateEventAsync(Guid eventId, UpdateEventRequest request, CancellationToken cancellationToken)
     {
         var eventEntity = await eventRepository.GetByIdAsync(eventId, cancellationToken);
         
@@ -112,6 +112,19 @@ internal sealed class EventService(
             StartAt = request.StartAt,
             EndAt = request.EndAt,
         });
+        
+        await eventRepository.SaveChangesAsync(cancellationToken);
+
+        return new UpdateEventResponse
+        {
+            Id = eventEntity.Id,
+            Title = eventEntity.Title,
+            Description = eventEntity.Description,
+            StartAt = eventEntity.StartAt,
+            EndAt = eventEntity.EndAt,
+            TotalSeats = eventEntity.TotalSeats,
+            AvailableSeats = eventEntity.AvailableSeats
+        };
     }
 
     public async Task DeleteEventAsync(Guid eventId, CancellationToken cancellationToken)
