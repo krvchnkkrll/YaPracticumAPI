@@ -12,8 +12,8 @@ public class BookingRepositoryTest : IntegrationTestBase
     {
         Title = "Test1",
         Description = "ForIntegrationsTests",
-        StartAt = DateTime.UtcNow,
-        EndAt = DateTime.UtcNow.AddDays(1),
+        StartAt = DateTime.UtcNow.TruncateToMicroseconds(),
+        EndAt = DateTime.UtcNow.AddDays(1).TruncateToMicroseconds(),
         TotalSeats = 10
     };
     
