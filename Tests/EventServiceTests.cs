@@ -122,9 +122,7 @@ public sealed class EventServiceTests
         using var scope = _serviceProvider.CreateScope();
 
         var service = scope.ServiceProvider.GetRequiredService<IEventService>();
-        var context = scope.ServiceProvider.GetRequiredService<IDbContext>();
         await service.UpdateEventAsync(eventId, request, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
 
         var result = await service.GetEventByIdAsync(eventId, CancellationToken.None);
 
@@ -143,10 +141,8 @@ public sealed class EventServiceTests
         using var scope = _serviceProvider.CreateScope();
 
         var service = scope.ServiceProvider.GetRequiredService<IEventService>();
-        var context = scope.ServiceProvider.GetRequiredService<IDbContext>();
         
         await service.DeleteEventAsync(eventId, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
 
         await FluentActions
             .Invoking(() => service.GetEventByIdAsync(eventId, CancellationToken.None))
