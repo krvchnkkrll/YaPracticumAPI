@@ -9,7 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.AddApplication();
 builder.AddPersistence();
-builder.AddWeb();
+builder.AddPresentation();
 
 var app = builder.Build();
 
