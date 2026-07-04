@@ -1,15 +1,13 @@
 using Application.Contracts.Models;
 using Application.Contracts.Services;
 using Domain.Exceptions;
-using Persistence.Contracts;
 using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 
 internal sealed class BookingService(
     IBookingRepository bookingRepository,
-    IEventRepository eventRepository,
-    IDbContext context) : IBookingService
+    IEventRepository eventRepository) : IBookingService
 {
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
     
@@ -28,7 +26,7 @@ internal sealed class BookingService(
 
             var booking = eventRepository.CreateBooking(eventEntity);
             
-            await context.SaveChangesAsync(cancellationToken);
+            await eventRepository.SaveChangesAsync(cancellationToken);
             
             return new CreateBookingResponse
             {

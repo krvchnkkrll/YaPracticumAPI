@@ -30,7 +30,7 @@ public interface IEventService
     /// <summary>
     ///     Обновить событие
     /// </summary>
-    Task UpdateEventAsync(Guid eventId, UpdateEventRequest request, CancellationToken cancellationToken);
+    Task<UpdateEventResponse> UpdateEventAsync(Guid eventId, UpdateEventRequest request, CancellationToken cancellationToken);
 
     /// <summary>
     ///     Удалить событие

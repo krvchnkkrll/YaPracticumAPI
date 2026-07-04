@@ -20,4 +20,11 @@ public interface IBookingRepository
     ///     Удалить брони 
     /// </summary>
     void Remove(IEnumerable<Booking> bookings);
+
+    /// <summary>
+    ///     Получить бронь с мероприятием
+    /// </summary>
+    Task<Booking?> GetBookingOrDefaultIncludeEventAsync(Guid bookingId, CancellationToken cancellationToken);
+    
+    Task SaveChangesAsync(CancellationToken cancellationToken);
 }

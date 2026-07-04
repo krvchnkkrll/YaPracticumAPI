@@ -1,3 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Domain.Entities.Bookings;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +11,7 @@ using Persistence.Contracts.Repositories;
 
 namespace Persistence.Repositories;
 
-internal sealed class BookingRepository(IDbContext context) : IBookingRepository
+public sealed class BookingRepository(IDbContext context) : IBookingRepository
 {
     public async Task<Booking> GetByIdAsync(Guid bookingId, CancellationToken cancellationToken)
     {
@@ -33,5 +38,17 @@ internal sealed class BookingRepository(IDbContext context) : IBookingRepository
     public void Remove(IEnumerable<Booking> bookings)
     {
         context.Bookings.RemoveRange(bookings);
+    }
+
+    public async Task<Booking?> GetBookingOrDefaultIncludeEventAsync(Guid bookingId, CancellationToken cancellationToken)
+    {
+        return await context.Bookings
+            .Include(b => b.Event)
+            .SingleOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
+    }
+
+    public async Task SaveChangesAsync(CancellationToken cancellationToken)
+    {
+        await context.SaveChangesAsync(cancellationToken);
     }
 }

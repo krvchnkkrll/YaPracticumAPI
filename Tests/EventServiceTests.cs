@@ -36,6 +36,7 @@ public sealed class EventServiceTests
             options.UseInMemoryDatabase(dbName));
 
         services.AddScoped<IDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IEventService, EventService>();
 
@@ -121,9 +122,7 @@ public sealed class EventServiceTests
         using var scope = _serviceProvider.CreateScope();
 
         var service = scope.ServiceProvider.GetRequiredService<IEventService>();
-        var context = scope.ServiceProvider.GetRequiredService<IDbContext>();
         await service.UpdateEventAsync(eventId, request, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
 
         var result = await service.GetEventByIdAsync(eventId, CancellationToken.None);
 
@@ -142,10 +141,8 @@ public sealed class EventServiceTests
         using var scope = _serviceProvider.CreateScope();
 
         var service = scope.ServiceProvider.GetRequiredService<IEventService>();
-        var context = scope.ServiceProvider.GetRequiredService<IDbContext>();
         
         await service.DeleteEventAsync(eventId, CancellationToken.None);
-        await context.SaveChangesAsync(CancellationToken.None);
 
         await FluentActions
             .Invoking(() => service.GetEventByIdAsync(eventId, CancellationToken.None))
@@ -362,6 +359,8 @@ public sealed class EventServiceTests
             .Should()
             .ThrowAsync<ArgumentException>();
     }
+    
+    
 
     private async Task<List<Event>> SeedEventsAsync()
     {

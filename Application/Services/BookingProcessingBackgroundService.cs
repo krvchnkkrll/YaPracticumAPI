@@ -1,16 +1,13 @@
 using Domain.Enums;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Persistence.Contracts;
 using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 
 internal sealed class BookingProcessingBackgroundService(
     IServiceScopeFactory scopeFactory,
-    IDbContextFactory contextFactory,
     ILogger<BookingProcessingBackgroundService> logger)
     : BackgroundService
 {
@@ -59,11 +56,12 @@ internal sealed class BookingProcessingBackgroundService(
 
         try
         {
-            await using var context = await contextFactory.CreateDbContextAsync(stoppingToken);
+            await using var scope = scopeFactory.CreateAsyncScope();
 
-            var booking = await context.Bookings
-                .Include(b => b.Event)
-                .SingleOrDefaultAsync(b => b.Id == bookingId, stoppingToken);
+            var bookingRepository =
+                scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+            
+            var booking = await bookingRepository.GetBookingOrDefaultIncludeEventAsync(bookingId, stoppingToken);
 
             if (booking is null)
             {
@@ -80,13 +78,13 @@ internal sealed class BookingProcessingBackgroundService(
                     booking.Id,
                     booking.EventId);
 
-                await context.SaveChangesAsync(stoppingToken);
+                await bookingRepository.SaveChangesAsync(stoppingToken);
                 return;
             }
 
             booking.ConfirmBooking();
 
-            await context.SaveChangesAsync(stoppingToken);
+            await bookingRepository.SaveChangesAsync(stoppingToken);
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
@@ -108,21 +106,21 @@ internal sealed class BookingProcessingBackgroundService(
     {
         try
         {
-            await using var context = await contextFactory.CreateDbContextAsync(stoppingToken);
+            await using var scope = scopeFactory.CreateAsyncScope();
 
-            var booking = await context.Bookings
-                .Include(b => b.Event)
-                .SingleOrDefaultAsync(b => b.Id == bookingId, stoppingToken);
+            var bookingRepository =
+                scope.ServiceProvider.GetRequiredService<IBookingRepository>();
+
+            var booking = await bookingRepository.GetBookingOrDefaultIncludeEventAsync(bookingId, stoppingToken);
 
             if (booking is null)
                 return;
 
             booking.RejectBooking();
 
-            if (booking.Event is not null)
-                booking.Event.ReleaseSeats();
+            booking.Event.ReleaseSeats();
 
-            await context.SaveChangesAsync(stoppingToken);
+            await bookingRepository.SaveChangesAsync(stoppingToken);
 
             logger.LogWarning("Бронь {BookingId} отклонена после ошибки", bookingId);
         }

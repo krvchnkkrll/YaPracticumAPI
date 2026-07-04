@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 using Domain.Entities.Bookings;
 using Domain.Entities.Events;
 using Microsoft.EntityFrameworkCore;
@@ -6,7 +8,7 @@ using Persistence.Contracts;
 
 namespace Persistence;
 
-internal sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IDbContext
+public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IDbContext
 {
     public DbSet<Event> Events { get; set; }
     

@@ -77,13 +77,15 @@ public sealed class EventController(
     ///     Изменить событие
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(UpdateEventResponse), StatusCodes.Status205ResetContent)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UpdateEventAsync([FromRoute] Guid id,
         [FromBody] UpdateEventRequest updateEventRequest, CancellationToken cancellationToken)
     {
-        await eventService.UpdateEventAsync(id, updateEventRequest, cancellationToken);
-        return NoContent();
+        var result = await eventService.UpdateEventAsync(id, updateEventRequest, cancellationToken);
+        
+        return StatusCode(StatusCodes.Status205ResetContent, result);
     }
 
     /// <summary>

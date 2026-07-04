@@ -47,4 +47,8 @@ public interface IEventRepository
     ///     Удалить событие из контекста.
     /// </summary>
     void Remove(Event eventEntity);
+
+    Task SaveChangesAsync(CancellationToken cancellationToken);
+    
+    Task<Event> GetByIdWithIncludeBookingsAsync(Guid eventId, CancellationToken cancellationToken);
 }
