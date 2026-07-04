@@ -1,6 +1,6 @@
-using Persistence;
-using Persistence.Contracts.Repositories;
-using Persistence.Repositories;
+using Application.Interfaces.Repositories;
+using Infrastructure;
+using Infrastructure.Repositories;
 
 namespace IntegrationTests.Fixtures;
 

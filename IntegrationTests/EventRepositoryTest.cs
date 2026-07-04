@@ -1,4 +1,4 @@
-using Application.Contracts.Models;
+using Application.Models;
 using Domain.Entities.Events;
 using Domain.Entities.Events.Parameters;
 using Domain.Enums;

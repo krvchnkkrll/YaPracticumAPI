@@ -1,6 +1,6 @@
+using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Persistence;
 using Testcontainers.PostgreSql;
 
 namespace IntegrationTests.Fixtures;

@@ -1,7 +1,7 @@
-using Application.Contracts.Models;
-using Application.Contracts.Services;
+using Application.Interfaces.Repositories;
+using Application.Interfaces.Services;
+using Application.Models;
 using Domain.Exceptions;
-using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 
