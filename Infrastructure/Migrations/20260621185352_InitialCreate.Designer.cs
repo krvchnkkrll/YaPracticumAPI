@@ -10,7 +10,7 @@ using Persistence;
 
 #nullable disable
 
-namespace Persistence.Migrations
+namespace Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
     [Migration("20260621185352_InitialCreate")]
