@@ -1,8 +1,8 @@
+using Application.Interfaces.Repositories;
 using Domain.Enums;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Persistence.Contracts.Repositories;
 
 namespace Application.Services;
 

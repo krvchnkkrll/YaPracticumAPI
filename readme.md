@@ -5,7 +5,7 @@
 - .NET 9 SDK
 - PostgreSQL
 
-Перед запуском необходимо указать строку подключения к PostgreSQL. В файле Web/appsettings.json
+Перед запуском необходимо указать строку подключения к PostgreSQL. В файле Presentation/appsettings.json
 ```json
 {
   "ConnectionStrings": {
@@ -15,17 +15,25 @@
 ```
 **Примечание:** Схема базы данных управляется через миграции, добавленные миграции применяются автоматически при запуске приложения.
 
+### Архитектура проекта
+
+Решение разбито на четыре проекта по принципам чистой архитектуры:
+- **Domain** — ядро приложения: сущности, перечисления, доменные исключения.
+- **Application** — бизнес-логика и сценарии использования, DTO для обмена данными между слоями, а также интерфейсы.
+- **Infrastructure** — репозитории, конфигурации маппинга сущностей и миграции EF Core.
+- **Presentation** — точка входа, контроллеры и обработчик глобальных исключений, регистрация всех зависимостей.
+
 ### Сборка/запуск
 
 build: ```dotnet build```
 
-run: ```dotnet run --project Web```
+run: ```dotnet run --project Presentation```
 
 tests: ```dotnet test```
 
-create migration ```dotnet ef migrations add MigrationName```
+create migration ```dotnet ef migrations add MigrationName --project Infrastructure --startup-project Presentation```
 
-apply migration ```dotnet ef database update```
+apply migration ```dotnet ef database update --project Infrastructure --startup-project Presentation```
 
 **Тесты:** Включают себя тесты сервисов и интеграционные тесты репозиториев. 
 В тестовах сервисов используется InMemory-провайдер Entity Framework Core — PostgreSQL для запуска тестов не требуется.
@@ -57,10 +65,10 @@ swagger: ```https://localhost:7013/swagger```
 - POST /api/events/{id}/book - создает и возвращает бронь
   Возможные ответы:
 
-| Код           | Описание |
-|---------------|----------|
-| 202 Accepted  | Бронь успешно создана |
-| 404 Not Found | Событие не найдено |
+| Код           | Описание                    |
+|---------------|-----------------------------|
+| 202 Accepted  | Бронь успешно создана       |
+| 404 Not Found | Событие не найдено          |
 | 409 Conflict  | Свободные места закончились |
 
 - GET /api/bookings/{id} - возвращает бронь
