@@ -89,7 +89,7 @@ public sealed class EventRepository(IDbContext context) : IEventRepository
 
     public Booking CreateBooking(Event eventEntity)
     {
-        return eventEntity.CreateBooking();
+        return eventEntity.CreateBooking(default);
     }
 
     public void Add(Event eventEntity)

@@ -1,5 +1,6 @@
 using Domain.Entities.Bookings.Parameters;
 using Domain.Entities.Events;
+using Domain.Entities.Users;
 using Domain.Enums;
 
 namespace Domain.Entities.Bookings;
@@ -14,6 +15,7 @@ public sealed class Booking
         EventId = parameters.EventId;
         CreatedAt = DateTime.UtcNow;
         Status = BookingStatus.Pending;
+        UserId = parameters.UserId;
     }
     
     /// <summary>
@@ -45,6 +47,17 @@ public sealed class Booking
     ///     Навигационное свойство событий
     /// </summary>
     public Event Event { get; private set; } = null!;
+    
+    /// <summary>
+    ///     Идентификатор пользователя
+    /// </summary>
+    public Guid UserId { get; private set; }
+
+    /// <summary>
+    ///     Навигационное свойство пользователя
+    /// </summary>
+    public User User { get; private set; } = null!;
+    
 
     /// <summary>
     ///     Добавить 
@@ -68,6 +81,18 @@ public sealed class Booking
     public void RejectBooking()
     {
         Status = BookingStatus.Rejected;
+        ProcessedAt = DateTime.UtcNow;
+    }
+    
+    /// <summary>
+    ///     Отклонить бронь
+    /// </summary>
+    public void CancelledBooking()
+    {
+        if (Status == BookingStatus.Cancelled)
+            return;
+        
+        Status = BookingStatus.Cancelled;
         ProcessedAt = DateTime.UtcNow;
     }
 }

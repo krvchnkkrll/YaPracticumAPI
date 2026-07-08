@@ -94,11 +94,12 @@ public sealed class Event
     /// <summary>
     ///     Добавить 
     /// </summary>
-    public Booking CreateBooking()
+    public Booking CreateBooking(Guid userId)
     { 
         var booking = Booking.Create(new CreateBookingParameters
         {
             EventId = Id,
+            UserId = userId,
         });
         _bookings.Add(booking);
         return booking;

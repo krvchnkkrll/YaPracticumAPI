@@ -149,7 +149,7 @@ public sealed class BookingServiceTests
             entity.TryReserveSeats().Should().BeTrue();
             entity.AvailableSeats.Should().Be(4);
 
-            var booking = entity.CreateBooking();
+            var booking = entity.CreateBooking(default);
             booking.RejectBooking();
             entity.ReleaseSeats();
 
