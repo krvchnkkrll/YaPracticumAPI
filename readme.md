@@ -19,7 +19,7 @@
 ```json
 {
   "Jwt": {
-    "Secret": "SecretKey",
+    "Secret": "Q53LoLDRd6lEB3EZGF/1O3R08YC/VvEoqKiTANzSL9Q=",
     "Issuer": "BookingApi",
     "Audience": "BookingApiClient",
     "Lifetime": 300
