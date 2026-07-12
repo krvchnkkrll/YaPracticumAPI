@@ -25,6 +25,8 @@ public interface IBookingRepository
     ///     Получить бронь с мероприятием
     /// </summary>
     Task<Booking?> GetBookingOrDefaultIncludeEventAsync(Guid bookingId, CancellationToken cancellationToken);
+
+    Task<int> GetCountUserActiveBookingsAsync(Guid userId, CancellationToken cancellationToken);
     
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

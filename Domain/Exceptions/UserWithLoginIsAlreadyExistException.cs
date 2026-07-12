@@ -1,3 +1,3 @@
 namespace Domain.Exceptions;
 
-public class UserWithLoginIsAlreadyExistException : Exception { }
+public sealed class UserWithLoginIsAlreadyExistException() : Exception("Пользователь с таким логином уже есть.");

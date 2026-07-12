@@ -42,6 +42,16 @@ public sealed class BookingRepository(IDbContext context) : IBookingRepository
             .SingleOrDefaultAsync(b => b.Id == bookingId, cancellationToken);
     }
 
+    public async Task<int> GetCountUserActiveBookingsAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return await context.Bookings
+            .Where(booking => booking.UserId == userId && 
+                              (booking.Status == BookingStatus.Pending 
+                               || 
+                               booking.Status == BookingStatus.Confirmed))
+            .CountAsync(cancellationToken);
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         await context.SaveChangesAsync(cancellationToken);

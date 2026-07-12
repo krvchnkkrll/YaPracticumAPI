@@ -87,9 +87,9 @@ public sealed class EventRepository(IDbContext context) : IEventRepository
         return await context.Events.ToListAsync(cancellationToken);
     }
 
-    public Booking CreateBooking(Event eventEntity)
+    public Booking CreateBooking(Event eventEntity, Guid userId)
     {
-        return eventEntity.CreateBooking(default);
+        return eventEntity.CreateBooking(userId);
     }
 
     public void Add(Event eventEntity)
