@@ -1,6 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
-using Infrastructure.Interfaces;
+using Application.Interfaces.Identity;
 
 namespace Infrastructure.Identity;
 

@@ -1,6 +1,7 @@
 using System.Reflection;
 using Domain.Entities.Bookings;
 using Domain.Entities.Events;
+using Domain.Entities.Users;
 using Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,6 +12,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbCon
     public DbSet<Event> Events { get; set; }
     
     public DbSet<Booking> Bookings { get; set; }
+    
+    public DbSet<User> Users { get; set; }
     
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
