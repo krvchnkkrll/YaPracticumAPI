@@ -1,8 +1,10 @@
 using System.Text;
 using System.Text.Json.Serialization;
+using Application.Interfaces.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using Presentation.Services;
 
 namespace Presentation;
 
@@ -61,5 +63,8 @@ public static class DependencyInjection
                 [new OpenApiSecuritySchemeReference("Bearer", document)] = []
             });
         });
+        
+        builder.Services.AddHttpContextAccessor();
+        builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
     }
 }
