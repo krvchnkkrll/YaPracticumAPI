@@ -10,10 +10,12 @@ public sealed class AuthController(IUserService userService) : AppController
     ///     Регистрация
     /// </summary>
     [HttpPost("/auth/register")]
-    [ProducesResponseType(typeof(CreateUserResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<CreateUserResponse>> RegisterAsync([FromBody] CreateUserRequest body, CancellationToken token)
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult> RegisterAsync([FromBody] CreateUserRequest body, CancellationToken token)
     {
-        return Ok(await userService.CreateAsync(body, token));
+        await userService.CreateAsync(body, token);
+        return NoContent();
     }
 
     /// <summary>

@@ -46,6 +46,13 @@ internal sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<
                 Status = StatusCodes.Status409Conflict,
                 Detail = "No available seats for this event"
             },
+            
+            UserWithLoginIsAlreadyExistException => new ProblemDetails
+            {
+                Title = "BadRequest",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = "User with login is already exist"
+            },
 
             _ => new ProblemDetails
             {

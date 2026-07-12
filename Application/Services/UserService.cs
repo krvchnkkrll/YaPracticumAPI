@@ -5,6 +5,7 @@ using Application.Models;
 using Domain.Entities.Users;
 using Domain.Entities.Users.Parameters;
 using Domain.Enums;
+using Domain.Exceptions;
 
 namespace Application.Services;
 
@@ -13,25 +14,25 @@ internal sealed class UserService(
     IUserRepository userRepository,
     IJwtTokenGenerator jwtTokenGenerator) : IUserService
 {
-    public async Task<CreateUserResponse> CreateAsync(CreateUserRequest body, CancellationToken token)
+    public async Task CreateAsync(CreateUserRequest body, CancellationToken token)
     {
+        var user = await userRepository.GetByLoginAsync(body.Login, token);
+
+        if (!ReferenceEquals(user, null))
+            throw new UserWithLoginIsAlreadyExistException();
+        
         var passwordHash = passwordHasher.GetPasswordHash(body.Password);
 
-        var user = User.Create(new CreateUserParameter
+        var newUser = User.Create(new CreateUserParameter
         {
             Login = body.Login,
             PasswordHash = passwordHash,
-            Role = UserRoleEnum.User
+            Role = body.Role ?? UserRoleEnum.User
         });
         
-        userRepository.Add(user);
+        userRepository.Add(newUser);
         
         await userRepository.SaveChangesAsync(token);
-
-        return new CreateUserResponse
-        {
-            Login = body.Login
-        };
     }
 
     public async Task<string> LoginAsync(LoginUserRequest body, CancellationToken token)
