@@ -14,5 +14,10 @@ public interface IUserRepository
     /// </summary>
     Task<User?> GetByLoginAsync(string login, CancellationToken token);
 
+    /// <summary>
+    ///     Получить пользователя по логину
+    /// </summary>
+    Task<User> GetReadOnlyByIdAsync(Guid userId, CancellationToken token);
+
     Task SaveChangesAsync(CancellationToken token);
 }

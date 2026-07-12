@@ -13,4 +13,9 @@ public interface IBookingService
     ///     Получить бронь по идентификатору
     /// </summary>
     Task<GetBookingResponse> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken);
+    
+    /// <summary>
+    ///     Получить бронь по идентификатору
+    /// </summary>
+    Task DeleteBookingAsync(Guid bookingId, CancellationToken cancellationToken);
 }

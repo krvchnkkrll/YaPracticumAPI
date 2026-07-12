@@ -67,6 +67,13 @@ internal sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<
                 Status = StatusCodes.Status400BadRequest,
                 Detail = exception.Message,
             },
+            
+            BookingAccessDeniedException => new ProblemDetails
+            {
+                Title = "Forbidden",
+                Status = StatusCodes.Status403Forbidden,
+                Detail = exception.Message,
+            },
 
             _ => new ProblemDetails
             {

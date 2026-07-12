@@ -2,6 +2,7 @@ using Application.Interfaces.Identity;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Models;
+using Domain.Enums;
 using Domain.Exceptions;
 using Domain.Static;
 
@@ -66,5 +67,19 @@ internal sealed class BookingService(
             CreatedAt = booking.CreatedAt,
             ProcessedAt = booking.ProcessedAt,
         };
+    }
+
+    public async Task DeleteBookingAsync(Guid bookingId, CancellationToken cancellationToken)
+    {
+        var booking = await bookingRepository.GetByIdAsync(bookingId, cancellationToken);
+
+        var isOwner = booking.UserId == currentUserService.UserId;
+        var isAdmin = currentUserService.Role == nameof(UserRoleEnum.Admin);
+
+        if (!isOwner && !isAdmin)
+            throw new BookingAccessDeniedException();
+
+        booking.CancelledBooking();
+        await bookingRepository.SaveChangesAsync(cancellationToken);
     }
 }
