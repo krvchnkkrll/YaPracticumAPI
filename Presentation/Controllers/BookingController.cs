@@ -1,5 +1,6 @@
 using Application.Interfaces.Services;
 using Application.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
@@ -10,6 +11,7 @@ public sealed class BookingController(IBookingService bookingService) : AppContr
     /// <summary>
     ///     Получить бронь
     /// </summary>
+    [Authorize]
     [HttpGet("{id:guid}", Name = nameof(GetBookingByIdAsync))]
     [ProducesResponseType(typeof(GetBookingResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

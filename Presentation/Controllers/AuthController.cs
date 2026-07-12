@@ -1,5 +1,6 @@
 using Application.Interfaces.Services;
 using Application.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
@@ -9,6 +10,7 @@ public sealed class AuthController(IUserService userService) : AppController
     /// <summary>
     ///     Регистрация
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("/auth/register")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -21,6 +23,7 @@ public sealed class AuthController(IUserService userService) : AppController
     /// <summary>
     ///     Авторизация 
     /// </summary>
+    [AllowAnonymous]
     [HttpPost("/auth/login")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

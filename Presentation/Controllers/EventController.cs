@@ -1,6 +1,7 @@
 using Application.Interfaces.Services;
 using Application.Models;
 using Domain.Models.Pagination;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Presentation.Controllers;
@@ -39,6 +40,7 @@ public sealed class EventController(
     ///     Создать событие
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(CreateEventResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreateEventResponse>> CreateEventAsync(
@@ -59,6 +61,7 @@ public sealed class EventController(
     ///     Создать бронь
     /// </summary>
     [HttpPost("{id:guid}/book")]
+    [Authorize]
     [ProducesResponseType(typeof(CreateBookingResponse), StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -77,6 +80,7 @@ public sealed class EventController(
     ///     Изменить событие
     /// </summary>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(UpdateEventResponse), StatusCodes.Status205ResetContent)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -92,6 +96,7 @@ public sealed class EventController(
     ///     Удалить событие
     /// </summary>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteEvent([FromRoute] Guid id, CancellationToken cancellationToken)
