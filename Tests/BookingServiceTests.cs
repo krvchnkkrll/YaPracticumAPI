@@ -1,3 +1,4 @@
+using Application.Interfaces.Identity;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Models;
@@ -7,23 +8,34 @@ using Domain.Entities.Events;
 using Domain.Entities.Events.Parameters;
 using Domain.Enums;
 using Domain.Exceptions;
+using Domain.Static;
 using FluentAssertions;
 using Infrastructure;
 using Infrastructure.Interfaces;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace Tests;
 
 public sealed class BookingServiceTests
 {
+    private readonly string _dbName = Guid.NewGuid().ToString();
+    private readonly Guid _userId = Guid.NewGuid();
     private readonly ServiceProvider _serviceProvider;
 
     public BookingServiceTests()
     {
-        var dbName = Guid.NewGuid().ToString();
+        var currentUserServiceMock = new Mock<ICurrentUserService>();
+        currentUserServiceMock.Setup(x => x.UserId).Returns(_userId);
+        currentUserServiceMock.Setup(x => x.Role).Returns(nameof(UserRoleEnum.User));
 
+        _serviceProvider = BuildServiceProvider(_dbName, currentUserServiceMock.Object);
+    }
+
+    private static ServiceProvider BuildServiceProvider(string dbName, ICurrentUserService currentUserService)
+    {
         var services = new ServiceCollection();
 
         services.AddDbContext<AppDbContext>(options =>
@@ -33,8 +45,9 @@ public sealed class BookingServiceTests
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IBookingService, BookingService>();
+        services.AddSingleton(currentUserService);
 
-        _serviceProvider = services.BuildServiceProvider();
+        return services.BuildServiceProvider();
     }
 
     [Fact]
@@ -149,7 +162,7 @@ public sealed class BookingServiceTests
             entity.TryReserveSeats().Should().BeTrue();
             entity.AvailableSeats.Should().Be(4);
 
-            var booking = entity.CreateBooking(default);
+            var booking = entity.CreateBooking(_userId);
             booking.RejectBooking();
             entity.ReleaseSeats();
 
@@ -321,14 +334,132 @@ public sealed class BookingServiceTests
         actual.AvailableSeats.Should().Be(0);
     }
 
-    private async Task<Event> SeedEventAsync(int totalSeats = 5)
+    [Fact]
+    public async Task Create_BookingForPastEvent_ThrowsEventAlreadyStartedException()
+    {
+        var eventEntity = await SeedEventAsync(
+            totalSeats: 5,
+            startAt: DateTime.UtcNow.AddDays(-1),
+            endAt: DateTime.UtcNow.AddDays(-1).AddHours(1));
+
+        using var scope = _serviceProvider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
+        await FluentActions
+            .Invoking(() => service.CreateBookingAsync(eventEntity.Id, CancellationToken.None))
+            .Should()
+            .ThrowAsync<EventAlreadyStartedException>();
+    }
+
+    [Fact]
+    public async Task Create_MoreThanLimitActiveBookings_ThrowsBookingLimitExceededException()
+    {
+        var eventEntity = await SeedEventAsync(totalSeats: BookingConstance.MaximumActiveUserBookings + 5);
+
+        using var scope = _serviceProvider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
+        for (var i = 0; i < BookingConstance.MaximumActiveUserBookings; i++)
+            await service.CreateBookingAsync(eventEntity.Id, CancellationToken.None);
+
+        await FluentActions
+            .Invoking(() => service.CreateBookingAsync(eventEntity.Id, CancellationToken.None))
+            .Should()
+            .ThrowAsync<BookingLimitExceededException>();
+    }
+
+    [Fact]
+    public async Task Create_BookingLimitForDifferentUsers_DoesNotAffectEachOther()
+    {
+        var eventEntity = await SeedEventAsync(totalSeats: BookingConstance.MaximumActiveUserBookings + 5);
+
+        using (var scope = _serviceProvider.CreateScope())
+        {
+            var service = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
+            for (var i = 0; i < BookingConstance.MaximumActiveUserBookings; i++)
+                await service.CreateBookingAsync(eventEntity.Id, CancellationToken.None);
+        }
+
+        var otherUserCurrentUserServiceMock = new Mock<ICurrentUserService>();
+        otherUserCurrentUserServiceMock.Setup(x => x.UserId).Returns(Guid.NewGuid());
+        otherUserCurrentUserServiceMock.Setup(x => x.Role).Returns(nameof(UserRoleEnum.User));
+
+        using var otherUserServiceProvider = BuildServiceProvider(_dbName, otherUserCurrentUserServiceMock.Object);
+        using var otherUserScope = otherUserServiceProvider.CreateScope();
+        var otherUserService = otherUserScope.ServiceProvider.GetRequiredService<IBookingService>();
+
+        var result = await FluentActions
+            .Invoking(() => otherUserService.CreateBookingAsync(eventEntity.Id, CancellationToken.None))
+            .Should()
+            .NotThrowAsync();
+
+        result.Subject.Status.Should().Be(BookingStatus.Pending);
+    }
+
+    [Fact]
+    public async Task Delete_OwnBooking_SetsStatusCancelled()
+    {
+        var eventEntity = await SeedEventAsync(totalSeats: 5);
+        var booking = await SeedBookingAsync(eventEntity.Id);
+
+        using var scope = _serviceProvider.CreateScope();
+        var service = scope.ServiceProvider.GetRequiredService<IBookingService>();
+
+        await service.DeleteBookingAsync(booking.Id, CancellationToken.None);
+
+        var gotten = await service.GetBookingByIdAsync(booking.Id, CancellationToken.None);
+        gotten.Status.Should().Be(nameof(BookingStatus.Cancelled));
+    }
+
+    [Fact]
+    public async Task Delete_OtherUsersBooking_ThrowsBookingAccessDeniedException()
+    {
+        var eventEntity = await SeedEventAsync(totalSeats: 5);
+        var booking = await SeedBookingAsync(eventEntity.Id);
+
+        var otherUserCurrentUserServiceMock = new Mock<ICurrentUserService>();
+        otherUserCurrentUserServiceMock.Setup(x => x.UserId).Returns(Guid.NewGuid());
+        otherUserCurrentUserServiceMock.Setup(x => x.Role).Returns(nameof(UserRoleEnum.User));
+
+        using var otherUserServiceProvider = BuildServiceProvider(_dbName, otherUserCurrentUserServiceMock.Object);
+        using var otherUserScope = otherUserServiceProvider.CreateScope();
+        var otherUserService = otherUserScope.ServiceProvider.GetRequiredService<IBookingService>();
+
+        await FluentActions
+            .Invoking(() => otherUserService.DeleteBookingAsync(booking.Id, CancellationToken.None))
+            .Should()
+            .ThrowAsync<BookingAccessDeniedException>();
+    }
+
+    [Fact]
+    public async Task Delete_OtherUsersBookingAsAdmin_SetsStatusCancelled()
+    {
+        var eventEntity = await SeedEventAsync(totalSeats: 5);
+        var booking = await SeedBookingAsync(eventEntity.Id);
+
+        var adminCurrentUserServiceMock = new Mock<ICurrentUserService>();
+        adminCurrentUserServiceMock.Setup(x => x.UserId).Returns(Guid.NewGuid());
+        adminCurrentUserServiceMock.Setup(x => x.Role).Returns(nameof(UserRoleEnum.Admin));
+
+        using var adminServiceProvider = BuildServiceProvider(_dbName, adminCurrentUserServiceMock.Object);
+        using var adminScope = adminServiceProvider.CreateScope();
+        var adminService = adminScope.ServiceProvider.GetRequiredService<IBookingService>();
+
+        await adminService.DeleteBookingAsync(booking.Id, CancellationToken.None);
+
+        var gotten = await adminService.GetBookingByIdAsync(booking.Id, CancellationToken.None);
+        gotten.Status.Should().Be(nameof(BookingStatus.Cancelled));
+    }
+
+    private async Task<Event> SeedEventAsync(int totalSeats = 5, DateTime? startAt = null, DateTime? endAt = null)
     {
         var eventEntity = Event.Create(new CreateEventParameter
         {
             Title = "Событие",
             Description = null,
-            StartAt = DateTime.UtcNow.AddDays(1),
-            EndAt = DateTime.UtcNow.AddDays(1).AddHours(1),
+            StartAt = startAt ?? DateTime.UtcNow.AddDays(1),
+            EndAt = endAt ?? DateTime.UtcNow.AddDays(1).AddHours(1),
             TotalSeats = totalSeats
         });
 

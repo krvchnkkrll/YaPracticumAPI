@@ -14,7 +14,7 @@ public class EventRepositoryTest : IntegrationTestBase
     {
         Title = "Test1",
         Description = "ForIntegrationsTests",
-        StartAt = DateTime.UtcNow.TruncateToMicroseconds(),
+        StartAt = DateTime.UtcNow.AddHours(1).TruncateToMicroseconds(),
         EndAt = DateTime.UtcNow.AddDays(1).TruncateToMicroseconds(),
         TotalSeats = 10
     };
@@ -23,7 +23,7 @@ public class EventRepositoryTest : IntegrationTestBase
     public async Task GetReadOnlyEventByIdAsync_WithNoTracking_ReturnReadOnlyEvent()
     {
         var eventEntity = await CreateAndSaveEventAsync();
-        
+
         var retrievedEventEntity = await EventRepository.GetReadOnlyByIdAsync(eventEntity.Id, CancellationToken.None);
         retrievedEventEntity.Update(new UpdateEventParameter
         {
@@ -32,19 +32,20 @@ public class EventRepositoryTest : IntegrationTestBase
             StartAt = eventEntity.StartAt,
             EndAt = eventEntity.EndAt,
         });
-        
+
         await EventRepository.SaveChangesAsync(CancellationToken.None);
-        
-        var retrievedEventEntityAfterUpdate = await EventRepository.GetReadOnlyByIdAsync(eventEntity.Id, CancellationToken.None);
-        
+
+        var retrievedEventEntityAfterUpdate =
+            await EventRepository.GetReadOnlyByIdAsync(eventEntity.Id, CancellationToken.None);
+
         retrievedEventEntityAfterUpdate.Should().BeEquivalentTo(eventEntity);
     }
-    
+
     [Fact]
     public async Task GetEventByIdAsync_WithTracking_ReturnEvent()
     {
         var eventEntity = await CreateAndSaveEventAsync();
-        
+
         var retrievedEventEntity = await EventRepository.GetByIdAsync(eventEntity.Id, CancellationToken.None);
         retrievedEventEntity.Update(new UpdateEventParameter
         {
@@ -53,11 +54,12 @@ public class EventRepositoryTest : IntegrationTestBase
             StartAt = eventEntity.StartAt,
             EndAt = eventEntity.EndAt,
         });
-        
+
         await EventRepository.SaveChangesAsync(CancellationToken.None);
-        
-        var retrievedEventEntityAfterUpdate = await EventRepository.GetReadOnlyByIdAsync(eventEntity.Id, CancellationToken.None);
-        
+
+        var retrievedEventEntityAfterUpdate =
+            await EventRepository.GetReadOnlyByIdAsync(eventEntity.Id, CancellationToken.None);
+
         retrievedEventEntityAfterUpdate.Should().BeEquivalentTo(retrievedEventEntity);
     }
 
@@ -67,7 +69,7 @@ public class EventRepositoryTest : IntegrationTestBase
         var firstEventEntity = await CreateAndSaveEventAsync();
         await CreateAndSaveEventAsync();
         await CreateAndSaveEventAsync();
-        
+
         var events = await EventRepository.GetAllReadOnlyAsync(CancellationToken.None);
 
         var eventEntity = events[0];
@@ -78,20 +80,21 @@ public class EventRepositoryTest : IntegrationTestBase
             StartAt = firstEventEntity.StartAt,
             EndAt = firstEventEntity.EndAt,
         });
-        
+
         await EventRepository.SaveChangesAsync(CancellationToken.None);
-        
-        var eventEntityAfterUpdate = await EventRepository.GetReadOnlyByIdAsync(firstEventEntity.Id, CancellationToken.None);
+
+        var eventEntityAfterUpdate =
+            await EventRepository.GetReadOnlyByIdAsync(firstEventEntity.Id, CancellationToken.None);
         eventEntityAfterUpdate.Should().BeEquivalentTo(firstEventEntity);
     }
-    
+
     [Fact]
     public async Task GetAllReadOnlyEvents_WithTracking_ReturnsAllEvents()
     {
         var firstEventEntity = await CreateAndSaveEventAsync();
         await CreateAndSaveEventAsync();
         await CreateAndSaveEventAsync();
-        
+
         var events = await EventRepository.GetAllAsync(CancellationToken.None);
 
         var eventEntity = events[0];
@@ -102,22 +105,24 @@ public class EventRepositoryTest : IntegrationTestBase
             StartAt = firstEventEntity.StartAt,
             EndAt = firstEventEntity.EndAt,
         });
-        
+
         await EventRepository.SaveChangesAsync(CancellationToken.None);
-        
-        var eventEntityAfterUpdate = await EventRepository.GetReadOnlyByIdAsync(firstEventEntity.Id, CancellationToken.None);
+
+        var eventEntityAfterUpdate =
+            await EventRepository.GetReadOnlyByIdAsync(firstEventEntity.Id, CancellationToken.None);
         eventEntityAfterUpdate.Should().BeEquivalentTo(eventEntity);
     }
-    
+
     [Fact]
     public async Task CreateBooking_WithValidEvent_SaveBooking()
     {
         var eventEntity = Event.Create(_eventParameter);
-        
+        var userId = await CreateAndSaveUserAsync();
+
         EventRepository.Add(eventEntity);
         eventEntity.TryReserveSeats();
-        var booking = EventRepository.CreateBooking(eventEntity);
-        
+        var booking = EventRepository.CreateBooking(eventEntity, userId);
+
         await EventRepository.SaveChangesAsync(CancellationToken.None);
 
         var retrieved = await BookingRepository.GetByIdAsync(booking.Id, CancellationToken.None);
@@ -127,31 +132,32 @@ public class EventRepositoryTest : IntegrationTestBase
         retrieved.EventId.Should().Be(eventEntity.Id);
         retrieved.Status.Should().Be(BookingStatus.Pending);
     }
-    
+
     [Fact]
     public async Task GetEvent_WithIncludeBookings_ReturnsEventWithIncludeBookings()
     {
         var eventEntity = Event.Create(_eventParameter);
-        
+        var userId = await CreateAndSaveUserAsync();
+
         EventRepository.Add(eventEntity);
         eventEntity.TryReserveSeats();
-        EventRepository.CreateBooking(eventEntity);
-        
+        EventRepository.CreateBooking(eventEntity, userId);
+
         await EventRepository.SaveChangesAsync(CancellationToken.None);
 
         var retrieved = await EventRepository.GetByIdWithIncludeBookingsAsync(eventEntity.Id, CancellationToken.None);
 
         retrieved.Bookings.Should().NotBeNull();
     }
-    
+
     [Fact]
     public async Task Remove_ExistingEvent_DeletesFromDatabase()
     {
         var eventEntity = await CreateAndSaveEventAsync();
-        
+
         EventRepository.Remove(eventEntity);
         await EventRepository.SaveChangesAsync(CancellationToken.None);
-        
+
         await FluentActions
             .Invoking(() => EventRepository.GetByIdAsync(eventEntity.Id, CancellationToken.None))
             .Should()
