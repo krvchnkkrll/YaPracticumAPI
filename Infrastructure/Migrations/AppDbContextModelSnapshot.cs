@@ -45,11 +45,18 @@ namespace Infrastructure.Migrations
                         .HasColumnType("text")
                         .HasColumnName("status");
 
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("user_id");
+
                     b.HasKey("Id")
                         .HasName("pk_bookings");
 
                     b.HasIndex("EventId")
                         .HasDatabaseName("ix_bookings_event_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_bookings_user_id");
 
                     b.ToTable("bookings", (string)null);
                 });
@@ -93,6 +100,37 @@ namespace Infrastructure.Migrations
                     b.ToTable("events", (string)null);
                 });
 
+            modelBuilder.Entity("Domain.Entities.Users.User", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("character varying(255)")
+                        .HasColumnName("login");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("password_hash");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("integer")
+                        .HasColumnName("role");
+
+                    b.HasKey("Id")
+                        .HasName("pk_users");
+
+                    b.HasIndex("Login")
+                        .IsUnique()
+                        .HasDatabaseName("ix_users_login");
+
+                    b.ToTable("users", (string)null);
+                });
+
             modelBuilder.Entity("Domain.Entities.Bookings.Booking", b =>
                 {
                     b.HasOne("Domain.Entities.Events.Event", "Event")
@@ -102,10 +140,24 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasConstraintName("fk_bookings_events_event_id");
 
+                    b.HasOne("Domain.Entities.Users.User", "User")
+                        .WithMany("Bookings")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired()
+                        .HasConstraintName("fk_bookings_users_user_id");
+
                     b.Navigation("Event");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.Events.Event", b =>
+                {
+                    b.Navigation("Bookings");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Users.User", b =>
                 {
                     b.Navigation("Bookings");
                 });

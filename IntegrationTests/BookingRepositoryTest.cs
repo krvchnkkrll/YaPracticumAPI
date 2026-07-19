@@ -12,17 +12,18 @@ public class BookingRepositoryTest : IntegrationTestBase
     {
         Title = "Test1",
         Description = "ForIntegrationsTests",
-        StartAt = DateTime.UtcNow.TruncateToMicroseconds(),
+        StartAt = DateTime.UtcNow.AddHours(1).TruncateToMicroseconds(),
         EndAt = DateTime.UtcNow.AddDays(1).TruncateToMicroseconds(),
         TotalSeats = 10
     };
-    
+
     [Fact]
     public async Task GetByIdAsync_WithValidId_ReturnsBooking()
     {
         var eventEntity = await CreateAndSaveEventAsync();
+        var userId = await CreateAndSaveUserAsync();
         eventEntity.TryReserveSeats();
-        var booking = EventRepository.CreateBooking(eventEntity);
+        var booking = EventRepository.CreateBooking(eventEntity, userId);
         await EventRepository.SaveChangesAsync(CancellationToken.None);
 
         var retrieved = await BookingRepository.GetByIdAsync(booking.Id, CancellationToken.None);
@@ -33,25 +34,27 @@ public class BookingRepositoryTest : IntegrationTestBase
     public async Task GetBookingByStatuses_FilteredByStatuses_ReturnsBooking()
     {
         var eventEntity = await CreateAndSaveEventAsync();
+        var userId = await CreateAndSaveUserAsync();
         eventEntity.TryReserveSeats();
-        var booking = EventRepository.CreateBooking(eventEntity);
+        var booking = EventRepository.CreateBooking(eventEntity, userId);
         booking.ConfirmBooking();
-        EventRepository.CreateBooking(eventEntity);
-        EventRepository.CreateBooking(eventEntity);
+        EventRepository.CreateBooking(eventEntity, userId);
+        EventRepository.CreateBooking(eventEntity, userId);
 
         await EventRepository.SaveChangesAsync(CancellationToken.None);
 
         var confirmedBookings = await BookingRepository.GetBookingsByStatusesAsync([BookingStatus.Confirmed], CancellationToken.None);
-        
+
         confirmedBookings.Should().HaveCount(1);
     }
-    
+
     [Fact]
     public async Task Remove_ExistingBooking_DeletesFromDatabase()
     {
         var eventEntity = await CreateAndSaveEventAsync();
+        var userId = await CreateAndSaveUserAsync();
         eventEntity.TryReserveSeats();
-        var booking = EventRepository.CreateBooking(eventEntity);
+        var booking = EventRepository.CreateBooking(eventEntity, userId);
         booking.ConfirmBooking();
 
         await EventRepository.SaveChangesAsync(CancellationToken.None);

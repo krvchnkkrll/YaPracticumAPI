@@ -1,5 +1,6 @@
 using Domain.Entities.Bookings;
 using Domain.Entities.Events;
+using Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 
@@ -10,6 +11,8 @@ public interface IDbContext : IDisposable, IAsyncDisposable
     DbSet<Event> Events { get; }
     
     DbSet<Booking> Bookings { get; }
+    
+    DbSet<User> Users { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     

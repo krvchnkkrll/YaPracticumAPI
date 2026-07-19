@@ -1,6 +1,7 @@
 using Domain.Entities.Bookings;
 using Domain.Entities.Bookings.Parameters;
 using Domain.Entities.Events.Parameters;
+using Domain.Exceptions;
 
 namespace Domain.Entities.Events;
 
@@ -94,11 +95,15 @@ public sealed class Event
     /// <summary>
     ///     Добавить 
     /// </summary>
-    public Booking CreateBooking()
+    public Booking CreateBooking(Guid userId)
     { 
+        if (StartAt <= DateTime.UtcNow)
+            throw new EventAlreadyStartedException();
+        
         var booking = Booking.Create(new CreateBookingParameters
         {
             EventId = Id,
+            UserId = userId,
         });
         _bookings.Add(booking);
         return booking;

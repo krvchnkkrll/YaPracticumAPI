@@ -44,7 +44,35 @@ internal sealed class ExceptionHandlingMiddleware(RequestDelegate next, ILogger<
             {
                 Title = "Conflict",
                 Status = StatusCodes.Status409Conflict,
-                Detail = "No available seats for this event"
+                Detail = exception.Message
+            },
+            
+            UserWithLoginIsAlreadyExistException => new ProblemDetails
+            {
+                Title = "BadRequest",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = exception.Message
+            },
+            
+            BookingLimitExceededException => new ProblemDetails
+            {
+                Title = "Conflict",
+                Status = StatusCodes.Status409Conflict,
+                Detail = exception.Message
+            },
+            
+            EventAlreadyStartedException => new ProblemDetails
+            {
+                Title = "BadRequest",
+                Status = StatusCodes.Status400BadRequest,
+                Detail = exception.Message,
+            },
+            
+            BookingAccessDeniedException => new ProblemDetails
+            {
+                Title = "Forbidden",
+                Status = StatusCodes.Status403Forbidden,
+                Detail = exception.Message,
             },
 
             _ => new ProblemDetails

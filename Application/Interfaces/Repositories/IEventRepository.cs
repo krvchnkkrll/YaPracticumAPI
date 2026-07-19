@@ -36,7 +36,7 @@ public interface IEventRepository
     /// <summary>
     ///     Добавить бронь к мероприятию
     /// </summary>
-    Booking CreateBooking(Event eventEntity);
+    Booking CreateBooking(Event eventEntity, Guid userId);
 
     /// <summary>
     ///     Добавить новое событие в контекст.

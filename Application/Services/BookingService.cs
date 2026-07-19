@@ -1,32 +1,43 @@
+using Application.Interfaces.Identity;
 using Application.Interfaces.Repositories;
 using Application.Interfaces.Services;
 using Application.Models;
+using Domain.Enums;
 using Domain.Exceptions;
+using Domain.Static;
 
 namespace Application.Services;
 
 internal sealed class BookingService(
     IBookingRepository bookingRepository,
-    IEventRepository eventRepository) : IBookingService
+    IEventRepository eventRepository,
+    ICurrentUserService currentUserService) : IBookingService
 {
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
     
-    public async Task<CreateBookingResponse> CreateBookingAsync(Guid eventId, CancellationToken cancellationToken)
+    public async Task<CreateBookingResponse> CreateBookingAsync(Guid eventId, CancellationToken token)
     {
+        var currentUserId = currentUserService.UserId;
+
+        var activeUserBookings = await bookingRepository.GetCountUserActiveBookingsAsync(currentUserId, token);
+
+        if (activeUserBookings >= BookingConstance.MaximumActiveUserBookings)
+            throw new BookingLimitExceededException(BookingConstance.MaximumActiveUserBookings);
+        
         try
         {
-            await SemaphoreSlim.WaitAsync(cancellationToken);
+            await SemaphoreSlim.WaitAsync(token);
             
-            var eventEntity = await eventRepository.GetByIdAsync(eventId, cancellationToken);
+            var eventEntity = await eventRepository.GetByIdAsync(eventId, token);
            
             var reserveResult = eventEntity.TryReserveSeats();
             
             if (!reserveResult)
                 throw new NoAvailableSeatsException();
 
-            var booking = eventRepository.CreateBooking(eventEntity);
+            var booking = eventRepository.CreateBooking(eventEntity, currentUserId);
             
-            await eventRepository.SaveChangesAsync(cancellationToken);
+            await eventRepository.SaveChangesAsync(token);
             
             return new CreateBookingResponse
             {
@@ -56,5 +67,19 @@ internal sealed class BookingService(
             CreatedAt = booking.CreatedAt,
             ProcessedAt = booking.ProcessedAt,
         };
+    }
+
+    public async Task DeleteBookingAsync(Guid bookingId, CancellationToken cancellationToken)
+    {
+        var booking = await bookingRepository.GetByIdAsync(bookingId, cancellationToken);
+
+        var isOwner = booking.UserId == currentUserService.UserId;
+        var isAdmin = currentUserService.Role == nameof(UserRoleEnum.Admin);
+
+        if (!isOwner && !isAdmin)
+            throw new BookingAccessDeniedException();
+
+        booking.CancelledBooking();
+        await bookingRepository.SaveChangesAsync(cancellationToken);
     }
 }
