@@ -26,4 +26,8 @@
       <PackageReference Include="System.Reflection" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Identity\" />
+    </ItemGroup>
+
 </Project>
