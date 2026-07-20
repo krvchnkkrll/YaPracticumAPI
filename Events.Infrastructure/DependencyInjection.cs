@@ -1,7 +1,6 @@
 using Events.Application.Interfaces.Repositories;
 using Events.Infrastructure.Interfaces;
 using Events.Infrastructure.Repositories;
-using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;

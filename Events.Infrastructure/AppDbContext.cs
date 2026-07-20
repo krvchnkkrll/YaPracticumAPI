@@ -3,7 +3,7 @@ using Events.Domain.Entities.Events;
 using Events.Infrastructure.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure;
+namespace Events.Infrastructure;
 
 public sealed class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IDbContext
 {
