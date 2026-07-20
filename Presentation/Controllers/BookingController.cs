@@ -34,4 +34,23 @@ public sealed class BookingController(IBookingService bookingService) : AppContr
         await bookingService.DeleteBookingAsync(id, cancellationToken);
         return NoContent();
     }
+    
+    /// <summary>
+    ///     Создать бронь
+    /// </summary>
+    [HttpPost("{id:guid}/book")]
+    [Authorize]
+    [ProducesResponseType(typeof(CreateBookingResponse), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<CreateBookingResponse>> CreateBookingAsync([FromRoute] Guid id,
+        CancellationToken cancellationToken)
+    {
+        var eventEntity = await bookingService.CreateBookingAsync(id, cancellationToken);
+
+        return AcceptedAtRoute(
+            nameof(BookingController.GetBookingByIdAsync),
+            new { id = eventEntity.Id },
+            eventEntity);
+    }
 }
