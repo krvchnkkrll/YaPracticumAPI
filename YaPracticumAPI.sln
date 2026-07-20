@@ -39,6 +39,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookings.Domain", "Bookings
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bookings.Infrastructure", "Bookings.Infrastructure\Bookings.Infrastructure.csproj", "{A0AA2076-30EE-4B35-9AA1-3FC19FE42DA4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Kafka.Contracts", "Kafka.Contracts\Kafka.Contracts.csproj", "{F0AA80F2-37D9-446C-A478-990F425890F9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -93,6 +95,10 @@ Global
 		{A0AA2076-30EE-4B35-9AA1-3FC19FE42DA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A0AA2076-30EE-4B35-9AA1-3FC19FE42DA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A0AA2076-30EE-4B35-9AA1-3FC19FE42DA4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F0AA80F2-37D9-446C-A478-990F425890F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F0AA80F2-37D9-446C-A478-990F425890F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F0AA80F2-37D9-446C-A478-990F425890F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0AA80F2-37D9-446C-A478-990F425890F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{09F0B665-B3F3-4F62-BBB0-0B2C337C40BE} = {0D6CCE66-A271-42F1-AA65-01E2BBDE0631}
