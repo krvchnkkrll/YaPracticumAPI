@@ -9,10 +9,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		readme.md = readme.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{37C965FA-7894-4DD7-B9A4-2314AF6606D6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IntegrationTests", "IntegrationTests\IntegrationTests.csproj", "{A964B3A3-32E6-45E7-B996-D10BFFB69607}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "UserServiceAPI", "UserServiceAPI", "{0D6CCE66-A271-42F1-AA65-01E2BBDE0631}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "BookingServiceAPI", "BookingServiceAPI", "{34C39D65-F022-4AD2-A404-B0613D9358D0}"
@@ -49,14 +45,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{37C965FA-7894-4DD7-B9A4-2314AF6606D6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{37C965FA-7894-4DD7-B9A4-2314AF6606D6}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{37C965FA-7894-4DD7-B9A4-2314AF6606D6}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{37C965FA-7894-4DD7-B9A4-2314AF6606D6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A964B3A3-32E6-45E7-B996-D10BFFB69607}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A964B3A3-32E6-45E7-B996-D10BFFB69607}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A964B3A3-32E6-45E7-B996-D10BFFB69607}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A964B3A3-32E6-45E7-B996-D10BFFB69607}.Release|Any CPU.Build.0 = Release|Any CPU
 		{09F0B665-B3F3-4F62-BBB0-0B2C337C40BE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{09F0B665-B3F3-4F62-BBB0-0B2C337C40BE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{09F0B665-B3F3-4F62-BBB0-0B2C337C40BE}.Release|Any CPU.ActiveCfg = Release|Any CPU
