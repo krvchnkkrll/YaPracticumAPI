@@ -33,13 +33,6 @@ public sealed class User
     ///     Роль
     /// </summary>
     public UserRoleEnum Role { get; private set; }
-    
-    private readonly List<Guid> _bookings = [];
-
-    /// <summary>
-    ///     Брони
-    /// </summary>
-    public IReadOnlyCollection<Guid> Bookings => _bookings;
 
     /// <summary>
     ///     Создать пользователя

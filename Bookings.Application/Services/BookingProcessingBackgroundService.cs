@@ -61,29 +61,13 @@ internal sealed class BookingProcessingBackgroundService(
             var bookingRepository =
                 scope.ServiceProvider.GetRequiredService<IBookingRepository>();
             
-            var booking = await bookingRepository.GetBookingOrDefaultIncludeEventAsync(bookingId, stoppingToken);
+            var booking = await bookingRepository.GetByIdOrDefaultAsync(bookingId, stoppingToken);
 
             if (booking is null)
             {
                 logger.LogWarning("Бронь {BookingId} не найдена", bookingId);
                 return;
             }
-
-            //todo
-            /*
-             * if (booking.Event is null)
-               {
-                   booking.RejectBooking();
-
-                   logger.LogWarning(
-                       "Бронь {BookingId} отклонена: событие {EventId} не найдено",
-                       booking.Id,
-                       booking.EventId);
-
-                   await bookingRepository.SaveChangesAsync(stoppingToken);
-                   return;
-               }
-             */
 
             booking.ConfirmBooking();
 
@@ -114,7 +98,7 @@ internal sealed class BookingProcessingBackgroundService(
             var bookingRepository =
                 scope.ServiceProvider.GetRequiredService<IBookingRepository>();
 
-            var booking = await bookingRepository.GetBookingOrDefaultIncludeEventAsync(bookingId, stoppingToken);
+            var booking = await bookingRepository.GetByIdOrDefaultAsync(bookingId, stoppingToken);
 
             if (booking is null)
                 return;

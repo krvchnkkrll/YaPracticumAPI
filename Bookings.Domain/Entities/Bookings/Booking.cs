@@ -51,7 +51,7 @@ public sealed class Booking
     /// </summary>
     /// <param name="parameters"></param>
     /// <returns></returns>
-    internal static Booking Create(CreateBookingParameters parameters) => new (parameters);
+    public static Booking Create(CreateBookingParameters parameters) => new (parameters);
 
     /// <summary>
     ///     Подтвердить бронь

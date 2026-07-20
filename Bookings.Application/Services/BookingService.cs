@@ -2,6 +2,8 @@ using Bookings.Application.Interfaces.Identity;
 using Bookings.Application.Interfaces.Repositories;
 using Bookings.Application.Interfaces.Services;
 using Bookings.Application.Models;
+using Bookings.Domain.Entities.Bookings;
+using Bookings.Domain.Entities.Bookings.Parameters;
 using Bookings.Domain.Enums;
 using Bookings.Domain.Exceptions;
 using Bookings.Domain.Static;
@@ -26,37 +28,23 @@ internal sealed class BookingService(
         try
         {
             await SemaphoreSlim.WaitAsync(token);
-            
-            //todo
-            /*
-             *            var eventEntity = await eventRepository.GetByIdAsync(eventId, token);
-           
-               var reserveResult = eventEntity.TryReserveSeats();
-               
-               if (!reserveResult)
-                   throw new NoAvailableSeatsException();
 
-               var booking = eventRepository.CreateBooking(eventEntity, currentUserId);
-               
-               await eventRepository.SaveChangesAsync(token);
-               
-                           
-               return new CreateBookingResponse
-               {
-                   Id = booking.Id,
-                   EventId = booking.EventId,
-                   Status = booking.Status,
-               };
-             * 
-             */
+            var booking = Booking.Create(new CreateBookingParameters
+            {
+                EventId = eventId,
+                UserId = currentUserId,
+            });
+
+            bookingRepository.Add(booking);
+
+            await bookingRepository.SaveChangesAsync(token);
 
             return new CreateBookingResponse
             {
-                Id = default,
-                EventId = default,
-                Status = (BookingStatus)0
+                Id = booking.Id,
+                EventId = booking.EventId,
+                Status = booking.Status,
             };
-
         }
         finally
         {

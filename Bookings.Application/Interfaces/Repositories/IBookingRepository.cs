@@ -6,6 +6,11 @@ namespace Bookings.Application.Interfaces.Repositories;
 public interface IBookingRepository
 {
     /// <summary>
+    ///     Добавить бронь
+    /// </summary>
+    void Add(Booking booking);
+
+    /// <summary>
     ///     Получить бронь по идентификатору
     /// </summary>
     Task<Booking> GetByIdAsync(Guid bookingId, CancellationToken cancellationToken);
@@ -22,9 +27,9 @@ public interface IBookingRepository
     void Remove(IEnumerable<Booking> bookings);
 
     /// <summary>
-    ///     Получить бронь с мероприятием
+    ///     Получить бронь по идентификатору или null
     /// </summary>
-    Task<Booking?> GetBookingOrDefaultIncludeEventAsync(Guid bookingId, CancellationToken cancellationToken);
+    Task<Booking?> GetByIdOrDefaultAsync(Guid bookingId, CancellationToken cancellationToken);
 
     Task<int> GetCountUserActiveBookingsAsync(Guid userId, CancellationToken cancellationToken);
     
