@@ -8,7 +8,7 @@ using Users.Presentation.Common.Middleware;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddApplication();
-builder.AddPersistence();
+builder.AddInfrastructure();
 builder.AddPresentation();
 
 var app = builder.Build();

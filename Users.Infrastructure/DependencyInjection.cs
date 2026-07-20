@@ -14,7 +14,7 @@ namespace Users.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static void AddPersistence(this IHostApplicationBuilder builder)
+    public static void AddInfrastructure(this IHostApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString("Postgres");
         builder.Services.Configure<JwtOptions>(builder.Configuration.GetRequiredSection("Jwt"));
