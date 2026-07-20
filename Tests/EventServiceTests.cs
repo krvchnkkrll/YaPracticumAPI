@@ -1,15 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Application.Interfaces.Repositories;
-using Application.Interfaces.Services;
-using Application.Models;
-using Application.Services;
-using Domain.Entities.Events;
-using Domain.Entities.Events.Parameters;
-using Domain.Models.Pagination;
 using FluentAssertions;
-using Infrastructure;
-using Infrastructure.Interfaces;
-using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 

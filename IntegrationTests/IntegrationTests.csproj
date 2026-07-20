@@ -11,9 +11,6 @@
     <PackageReference Include="FluentAssertions" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure\Infrastructure.csproj" />
-  </ItemGroup>
-  <ItemGroup>
     <Using Include="Xunit"/>
   </ItemGroup>
 </Project>

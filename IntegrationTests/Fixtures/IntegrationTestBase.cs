@@ -1,10 +1,3 @@
-using Application.Interfaces.Repositories;
-using Domain.Entities.Users;
-using Domain.Entities.Users.Parameters;
-using Domain.Enums;
-using Infrastructure;
-using Infrastructure.Repositories;
-
 namespace IntegrationTests.Fixtures;
 
 public abstract class IntegrationTestBase : IAsyncLifetime

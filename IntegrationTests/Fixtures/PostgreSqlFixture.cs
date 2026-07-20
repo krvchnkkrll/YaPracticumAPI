@@ -1,4 +1,3 @@
-using Infrastructure;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Testcontainers.PostgreSql;
