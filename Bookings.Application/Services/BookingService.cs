@@ -1,0 +1,97 @@
+using Bookings.Application.Interfaces.Identity;
+using Bookings.Application.Interfaces.Repositories;
+using Bookings.Application.Interfaces.Services;
+using Bookings.Application.Models;
+using Bookings.Domain.Enums;
+using Bookings.Domain.Exceptions;
+using Bookings.Domain.Static;
+
+namespace Bookings.Application.Services;
+
+internal sealed class BookingService(
+    IBookingRepository bookingRepository,
+    ICurrentUserService currentUserService) : IBookingService
+{
+    private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
+    
+    public async Task<CreateBookingResponse> CreateBookingAsync(Guid eventId, CancellationToken token)
+    {
+        var currentUserId = currentUserService.UserId;
+
+        var activeUserBookings = await bookingRepository.GetCountUserActiveBookingsAsync(currentUserId, token);
+
+        if (activeUserBookings >= BookingConstance.MaximumActiveUserBookings)
+            throw new BookingLimitExceededException(BookingConstance.MaximumActiveUserBookings);
+        
+        try
+        {
+            await SemaphoreSlim.WaitAsync(token);
+            
+            //todo
+            /*
+             *            var eventEntity = await eventRepository.GetByIdAsync(eventId, token);
+           
+               var reserveResult = eventEntity.TryReserveSeats();
+               
+               if (!reserveResult)
+                   throw new NoAvailableSeatsException();
+
+               var booking = eventRepository.CreateBooking(eventEntity, currentUserId);
+               
+               await eventRepository.SaveChangesAsync(token);
+               
+                           
+               return new CreateBookingResponse
+               {
+                   Id = booking.Id,
+                   EventId = booking.EventId,
+                   Status = booking.Status,
+               };
+             * 
+             */
+
+            return new CreateBookingResponse
+            {
+                Id = default,
+                EventId = default,
+                Status = (BookingStatus)0
+            };
+
+        }
+        finally
+        {
+            SemaphoreSlim.Release();
+        }
+    }
+
+    public async Task<GetBookingResponse> GetBookingByIdAsync(Guid bookingId, CancellationToken cancellationToken)
+    {
+        var booking = await bookingRepository.GetByIdAsync(bookingId, cancellationToken);
+        
+        if (ReferenceEquals(booking, null))
+            throw new KeyNotFoundException($"Бронь с идентификатором {bookingId} не найдено.");
+        
+        return new GetBookingResponse
+        {
+            Id = booking.Id,
+            EventId = booking.EventId,
+            Status = booking.Status.ToString(),
+            CreatedAt = booking.CreatedAt,
+            ProcessedAt = booking.ProcessedAt,
+        };
+    }
+
+    public async Task DeleteBookingAsync(Guid bookingId, CancellationToken cancellationToken)
+    {
+        var booking = await bookingRepository.GetByIdAsync(bookingId, cancellationToken);
+
+        var isOwner = booking.UserId == currentUserService.UserId;
+        var isAdmin = currentUserService.Role == nameof(UserRoleEnum.Admin);
+
+        if (!isOwner && !isAdmin)
+            throw new BookingAccessDeniedException();
+
+        booking.CancelledBooking();
+        await bookingRepository.SaveChangesAsync(cancellationToken);
+    }
+}

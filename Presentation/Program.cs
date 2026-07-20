@@ -1,10 +1,3 @@
-using Application;
-using Infrastructure;
-using Infrastructure.Interfaces;
-using Microsoft.EntityFrameworkCore;
-using Presentation;
-using Presentation.Common.Middleware;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.AddApplication();
