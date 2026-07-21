@@ -1,5 +1,8 @@
+using Bookings.Application.Interfaces.Events;
 using Bookings.Application.Interfaces.Repositories;
+using Bookings.Infrastructure.Events;
 using Bookings.Infrastructure.Interfaces;
+using Bookings.Infrastructure.Models;
 using Bookings.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -14,6 +17,8 @@ public static class DependencyInjection
     public static void AddInfrastructure(this IHostApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString("Postgres");
+
+        builder.Services.Configure<KafkaOptions>(builder.Configuration.GetRequiredSection("Kafka"));
 
         builder.Services.AddDbContextPool<AppDbContext>(options =>
         {
@@ -41,5 +46,7 @@ public static class DependencyInjection
             provider => provider.GetRequiredService<AppDbContext>());
         
         builder.Services.AddScoped<IBookingRepository, BookingRepository>();
+
+        builder.Services.AddSingleton<IBookingConfirmedPublisher, KafkaBookingConfirmedPublisher>();
     }
 }

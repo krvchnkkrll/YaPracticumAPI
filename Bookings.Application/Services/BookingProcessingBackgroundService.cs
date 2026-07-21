@@ -1,5 +1,7 @@
+using Bookings.Application.Interfaces.Events;
 using Bookings.Application.Interfaces.Repositories;
 using Bookings.Domain.Enums;
+using Kafka.Contracts.Events;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -8,6 +10,7 @@ namespace Bookings.Application.Services;
 
 internal sealed class BookingProcessingBackgroundService(
     IServiceScopeFactory scopeFactory,
+    IBookingConfirmedPublisher bookingConfirmedPublisher,
     ILogger<BookingProcessingBackgroundService> logger)
     : BackgroundService
 {
@@ -72,6 +75,25 @@ internal sealed class BookingProcessingBackgroundService(
             booking.ConfirmBooking();
 
             await bookingRepository.SaveChangesAsync(stoppingToken);
+
+            try
+            {
+                await bookingConfirmedPublisher.PublishAsync(new BookingConfirmedEvent
+                {
+                    BookingId = booking.Id,
+                    EventId = booking.EventId,
+                    UserId = booking.UserId,
+                    SeatsCount = 1,
+                    ConfirmedAt = booking.ProcessedAt!.Value,
+                }, stoppingToken);
+            }
+            catch (Exception e) when (e is not OperationCanceledException)
+            {
+                logger.LogError(
+                    e,
+                    "Бронь {BookingId} подтверждена в БД, но не удалось опубликовать событие в брокер сообщений",
+                    bookingId);
+            }
         }
         catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
         {
