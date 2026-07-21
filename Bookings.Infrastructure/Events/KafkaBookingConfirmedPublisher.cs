@@ -44,7 +44,11 @@ internal sealed class KafkaBookingConfirmedPublisher(
 
     public void Dispose()
     {
-        _producer.Flush(TimeSpan.FromSeconds(10));
+        var remaining = _producer.Flush(TimeSpan.FromSeconds(10));
+
+        if (remaining > 0)
+            logger.LogWarning("При остановке продюсера не отправлено {Count} сообщений", remaining);
+
         _producer.Dispose();
     }
 }
