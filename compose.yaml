@@ -1,0 +1,19 @@
+﻿services:
+  bookings.presentation:
+    image: bookings.presentation
+    build:
+      context: .
+      dockerfile: Bookings.Presentation/Dockerfile
+
+  events.presentation:
+    image: events.presentation
+    build:
+      context: .
+      dockerfile: Events.Presentation/Dockerfile
+
+  users.presentation:
+    image: users.presentation
+    build:
+      context: .
+      dockerfile: Users.Presentation/Dockerfile
+
