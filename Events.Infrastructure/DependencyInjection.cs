@@ -1,5 +1,7 @@
 using Events.Application.Interfaces.Repositories;
+using Events.Infrastructure.Events;
 using Events.Infrastructure.Interfaces;
+using Events.Infrastructure.Models;
 using Events.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
@@ -14,7 +16,9 @@ public static class DependencyInjection
     public static void AddInfrastructure(this IHostApplicationBuilder builder)
     {
         var connectionString = builder.Configuration.GetConnectionString("Postgres");
-
+        
+        builder.Services.Configure<KafkaOptions>(builder.Configuration.GetRequiredSection("Kafka"));
+        
         builder.Services.AddDbContextPool<AppDbContext>(options =>
         {
             options
@@ -41,5 +45,7 @@ public static class DependencyInjection
             provider => provider.GetRequiredService<AppDbContext>());
         
         builder.Services.AddScoped<IEventRepository, EventRepository>();
+        
+        builder.Services.AddHostedService<KafkaBookingConfirmedConsumerWorker>();
     }
 }

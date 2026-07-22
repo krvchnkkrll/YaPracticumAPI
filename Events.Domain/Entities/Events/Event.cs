@@ -1,4 +1,5 @@
 using Events.Domain.Entities.Events.Parameters;
+using Events.Domain.Exceptions;
 
 namespace Events.Domain.Entities.Events;
 
@@ -108,6 +109,8 @@ public sealed class Event
 
     public bool TryReserveSeats(int count = 1)
     {
+        IsEventStarted();
+        
         if (count <= 0) 
             throw new ArgumentOutOfRangeException(nameof(count), "Количество мест для бронирования должно быть больше нуля.");
 
@@ -127,5 +130,11 @@ public sealed class Event
             throw new InvalidOperationException("Количество доступных мест не может быть больше общего количества мест.");
 
         AvailableSeats += count;
+    }
+
+    private void IsEventStarted()
+    {
+        if (StartAt <= DateTime.UtcNow)
+            throw new EventAlreadyStartedException();
     }
 }
