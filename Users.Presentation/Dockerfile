@@ -7,6 +7,7 @@ EXPOSE 8081
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+COPY ["Directory.Build.props", "Directory.Packages.props", "global.json", "./"]
 COPY ["Users.Presentation/Users.Presentation.csproj", "Users.Presentation/"]
 COPY ["Users.Application/Users.Application.csproj", "Users.Application/"]
 COPY ["Users.Domain/Users.Domain.csproj", "Users.Domain/"]
