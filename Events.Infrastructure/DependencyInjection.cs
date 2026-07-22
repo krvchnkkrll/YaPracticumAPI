@@ -46,6 +46,7 @@ public static class DependencyInjection
         
         builder.Services.AddScoped<IEventRepository, EventRepository>();
         
+        builder.Services.AddHostedService<KafkaTopicInitializerHostedService>();
         builder.Services.AddHostedService<KafkaBookingConfirmedConsumerWorker>();
     }
 }
