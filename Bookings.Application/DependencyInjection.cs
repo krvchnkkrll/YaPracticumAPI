@@ -10,6 +10,7 @@ public static class DependencyInjection
     public static void AddApplication(this IHostApplicationBuilder builder)
     {
         builder.Services.AddScoped<IBookingService, BookingService>();
+        builder.Services.AddScoped<IAccessService, AccessService>();
 
         builder.Services.AddHostedService<BookingProcessingBackgroundService>();
     }

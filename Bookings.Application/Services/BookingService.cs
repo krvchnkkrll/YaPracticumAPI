@@ -17,6 +17,7 @@ internal sealed class BookingService(
     IBookingRepository bookingRepository,
     ICurrentUserService currentUserService,
     IBookingEventPublisher bookingEventPublisher,
+    IAccessService accessService,
     ILogger<BookingService> logger) : IBookingService
 {
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
@@ -61,6 +62,9 @@ internal sealed class BookingService(
     {
         var booking = await bookingRepository.GetByIdAsync(bookingId, cancellationToken);
         
+        if (!accessService.IsCurrentUserHasAccessToBooking(booking))
+            throw new BookingAccessDeniedException();
+        
         if (ReferenceEquals(booking, null))
             throw new KeyNotFoundException($"Бронь с идентификатором {bookingId} не найдено.");
         
@@ -78,10 +82,7 @@ internal sealed class BookingService(
     {
         var booking = await bookingRepository.GetByIdAsync(bookingId, cancellationToken);
 
-        var isOwner = booking.UserId == currentUserService.UserId;
-        var isAdmin = currentUserService.Role == nameof(UserRoleEnum.Admin);
-
-        if (!isOwner && !isAdmin)
+        if (!accessService.IsCurrentUserHasAccessToBooking(booking))
             throw new BookingAccessDeniedException();
 
         var wasConfirmed = booking.Status == BookingStatus.Confirmed;
