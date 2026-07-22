@@ -1,3 +1,4 @@
+using Bookings.Application.Interfaces.Events;
 using Bookings.Application.Interfaces.Identity;
 using Bookings.Application.Interfaces.Repositories;
 using Bookings.Application.Interfaces.Services;
@@ -7,12 +8,16 @@ using Bookings.Domain.Entities.Bookings.Parameters;
 using Bookings.Domain.Enums;
 using Bookings.Domain.Exceptions;
 using Bookings.Domain.Static;
+using Kafka.Contracts.Events;
+using Microsoft.Extensions.Logging;
 
 namespace Bookings.Application.Services;
 
 internal sealed class BookingService(
     IBookingRepository bookingRepository,
-    ICurrentUserService currentUserService) : IBookingService
+    ICurrentUserService currentUserService,
+    IBookingEventPublisher bookingEventPublisher,
+    ILogger<BookingService> logger) : IBookingService
 {
     private static readonly SemaphoreSlim SemaphoreSlim = new(1, 1);
     
@@ -79,7 +84,28 @@ internal sealed class BookingService(
         if (!isOwner && !isAdmin)
             throw new BookingAccessDeniedException();
 
+        var wasConfirmed = booking.Status == BookingStatus.Confirmed;
+
         booking.CancelledBooking();
         await bookingRepository.SaveChangesAsync(cancellationToken);
+
+        if (!wasConfirmed)
+            return;
+
+        try
+        {
+            await bookingEventPublisher.PublishBookingCancelledAsync(new BookingCancelledEvent
+            {
+                BookingId = booking.Id,
+                EventId = booking.EventId,
+                UserId = booking.UserId,
+                SeatsCount = 1,
+                CancelledAt = booking.ProcessedAt!.Value,
+            }, cancellationToken);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            logger.LogError(e, "Ошибка публикации брони {BookingId} в брокер сообщений.", bookingId);
+        }
     }
 }

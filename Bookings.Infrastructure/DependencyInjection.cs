@@ -47,6 +47,6 @@ public static class DependencyInjection
         
         builder.Services.AddScoped<IBookingRepository, BookingRepository>();
 
-        builder.Services.AddSingleton<IBookingConfirmedPublisher, KafkaBookingConfirmedPublisher>();
+        builder.Services.AddSingleton<IBookingEventPublisher, KafkaBookingEventPublisher>();
     }
 }

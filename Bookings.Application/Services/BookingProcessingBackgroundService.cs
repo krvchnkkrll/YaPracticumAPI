@@ -10,7 +10,7 @@ namespace Bookings.Application.Services;
 
 internal sealed class BookingProcessingBackgroundService(
     IServiceScopeFactory scopeFactory,
-    IBookingConfirmedPublisher bookingConfirmedPublisher,
+    IBookingEventPublisher bookingEventPublisher,
     ILogger<BookingProcessingBackgroundService> logger)
     : BackgroundService
 {
@@ -78,7 +78,7 @@ internal sealed class BookingProcessingBackgroundService(
 
             try
             {
-                await bookingConfirmedPublisher.PublishAsync(new BookingConfirmedEvent
+                await bookingEventPublisher.PublishBookingConfirmedAsync(new BookingConfirmedEvent
                 {
                     BookingId = booking.Id,
                     EventId = booking.EventId,

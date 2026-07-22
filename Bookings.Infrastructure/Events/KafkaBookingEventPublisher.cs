@@ -9,34 +9,37 @@ using Microsoft.Extensions.Options;
 
 namespace Bookings.Infrastructure.Events;
 
-internal sealed class KafkaBookingConfirmedPublisher(
+internal sealed class KafkaBookingEventPublisher(
     IOptions<KafkaOptions> options,
-    ILogger<KafkaBookingConfirmedPublisher> logger)
-    : IBookingConfirmedPublisher, IDisposable
+    ILogger<KafkaBookingEventPublisher> logger)
+    : IBookingEventPublisher, IDisposable
 {
     private readonly IProducer<string, string> _producer = new ProducerBuilder<string, string>(
         new ProducerConfig { BootstrapServers = options.Value.BootstrapServers }).Build();
 
-    public async Task PublishAsync(BookingConfirmedEvent @event, CancellationToken cancellationToken)
+    public Task PublishBookingConfirmedAsync(BookingConfirmedEvent @event, CancellationToken cancellationToken) =>
+        PublishAsync(Topics.BookingConfirmTopic, @event.EventId, @event.BookingId, @event, cancellationToken);
+
+    public Task PublishBookingCancelledAsync(BookingCancelledEvent @event, CancellationToken cancellationToken) =>
+        PublishAsync(Topics.BookingCancelTopic, @event.EventId, @event.BookingId, @event, cancellationToken);
+
+    private async Task PublishAsync<TEvent>(string topic, Guid eventId, Guid bookingId, TEvent @event,
+        CancellationToken cancellationToken)
     {
         var message = new Message<string, string>
         {
-            Key = @event.EventId.ToString(),
+            Key = eventId.ToString(),
             Value = JsonSerializer.Serialize(@event),
         };
 
         try
         {
-            await _producer.ProduceAsync(Topics.BookingConfirmTopic, message, cancellationToken);
+            await _producer.ProduceAsync(topic, message, cancellationToken);
         }
         catch (ProduceException<string, string> e)
         {
-            logger.LogError(
-                e,
-                "Не удалось опубликовать {EventType} по брони {BookingId} в топик {Topic}",
-                nameof(BookingConfirmedEvent),
-                @event.BookingId,
-                Topics.BookingConfirmTopic);
+            logger.LogError(e, "Ошибка публикации {EventType} по брони {BookingId} в топик {Topic}",
+                typeof(TEvent).Name, bookingId, topic);
 
             throw;
         }

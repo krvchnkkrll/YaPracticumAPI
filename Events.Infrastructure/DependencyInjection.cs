@@ -48,5 +48,6 @@ public static class DependencyInjection
         
         builder.Services.AddHostedService<KafkaTopicInitializerHostedService>();
         builder.Services.AddHostedService<KafkaBookingConfirmedConsumerWorker>();
+        builder.Services.AddHostedService<KafkaBookingCancelledConsumerWorker>();
     }
 }
