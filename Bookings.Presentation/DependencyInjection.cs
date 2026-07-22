@@ -15,6 +15,8 @@ public static class DependencyInjection
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
+        
+        builder.Services.AddHealthChecks();
 
         builder.Services.AddEndpointsApiExplorer();
 
