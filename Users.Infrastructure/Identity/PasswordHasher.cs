@@ -4,7 +4,7 @@ using Users.Application.Interfaces.Identity;
 
 namespace Users.Infrastructure.Identity;
 
-internal sealed class PasswordHasher  : IPasswordHasher
+public sealed class PasswordHasher  : IPasswordHasher
 {
     public string GetPasswordHash(string password)
     {

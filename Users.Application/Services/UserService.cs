@@ -9,7 +9,7 @@ using Users.Domain.Users.Parameters;
 
 namespace Users.Application.Services;
 
-internal sealed class UserService(
+public sealed class UserService(
     IPasswordHasher passwordHasher,
     IUserRepository userRepository,
     IJwtTokenGenerator jwtTokenGenerator) : IUserService

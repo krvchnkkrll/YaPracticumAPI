@@ -1,9 +1,9 @@
 namespace Users.Infrastructure.Models;
 
-internal sealed class JwtOptions
+public sealed class JwtOptions
 {
-    public required string Secret { get; init; }
-    public required string Issuer { get; init; }
-    public required string Audience { get; init; }
-    public required int Lifetime { get; init; }
+    public required string Secret { get; set; }
+    public required string Issuer { get; set; }
+    public required string Audience { get; set; }
+    public required int Lifetime { get; set; }
 }

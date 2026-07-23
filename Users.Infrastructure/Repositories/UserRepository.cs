@@ -18,13 +18,6 @@ public sealed class UserRepository(IDbContext context) : IUserRepository
             .AsNoTracking()
             .SingleOrDefaultAsync(user => user.Login == login, token);
     }
-
-    public async Task<User> GetReadOnlyByIdAsync(Guid userId, CancellationToken token)
-    {
-        return await context.Users
-            .AsNoTracking()
-            .SingleOrDefaultAsync(user => user.Id == userId, token) ?? throw new KeyNotFoundException();
-    }
     
     public async Task SaveChangesAsync(CancellationToken token)
     {

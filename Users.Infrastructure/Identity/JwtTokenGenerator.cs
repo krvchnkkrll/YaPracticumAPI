@@ -9,7 +9,7 @@ using Users.Infrastructure.Models;
 
 namespace Users.Infrastructure.Identity;
 
-internal sealed class JwtTokenGenerator(
+public sealed class JwtTokenGenerator(
     IOptions<JwtOptions> jwtOptions) : IJwtTokenGenerator
 {
     public string GenerateToken(User user)
