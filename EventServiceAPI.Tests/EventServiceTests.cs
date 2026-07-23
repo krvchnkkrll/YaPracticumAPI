@@ -1,9 +1,19 @@
 using System.ComponentModel.DataAnnotations;
+using Events.Application.Interfaces.Repositories;
+using Events.Application.Interfaces.Services;
+using Events.Application.Models;
+using Events.Application.Services;
+using Events.Domain.Entities.Events;
+using Events.Domain.Entities.Events.Parameters;
+using Events.Domain.Models.Pagination;
+using Events.Infrastructure;
+using Events.Infrastructure.Interfaces;
+using Events.Infrastructure.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Tests;
+namespace EventServiceAPI.Tests;
 
 public sealed class EventServiceTests
 {
@@ -26,7 +36,6 @@ public sealed class EventServiceTests
             options.UseInMemoryDatabase(dbName));
 
         services.AddScoped<IDbContext>(sp => sp.GetRequiredService<AppDbContext>());
-        services.AddScoped<IBookingRepository, BookingRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IEventService, EventService>();
 
@@ -131,7 +140,7 @@ public sealed class EventServiceTests
         using var scope = _serviceProvider.CreateScope();
 
         var service = scope.ServiceProvider.GetRequiredService<IEventService>();
-        
+
         await service.DeleteEventAsync(eventId, CancellationToken.None);
 
         await FluentActions
@@ -247,7 +256,7 @@ public sealed class EventServiceTests
         result.Items.Select(e => e.Id)
             .Should()
             .BeEquivalentTo(expected, options => options.WithStrictOrdering());
-        
+
         result.TotalItems.Should().Be(3);
         result.CurrentPage.Should().Be(2);
         result.PageSize.Should().Be(2);
@@ -349,8 +358,6 @@ public sealed class EventServiceTests
             .Should()
             .ThrowAsync<ArgumentException>();
     }
-    
-    
 
     private async Task<List<Event>> SeedEventsAsync()
     {

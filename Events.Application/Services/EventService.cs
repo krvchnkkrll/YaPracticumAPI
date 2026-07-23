@@ -8,7 +8,7 @@ using Events.Domain.Models.Pagination;
 
 namespace Events.Application.Services;
 
-internal sealed class EventService(IEventRepository eventRepository) : IEventService
+public sealed class EventService(IEventRepository eventRepository) : IEventService
 {
     private const int DefaultPageSize = 10;
     private const int DefaultPage = 1;

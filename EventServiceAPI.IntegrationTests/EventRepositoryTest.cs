@@ -1,12 +1,11 @@
-using Application.Models;
-using Domain.Entities.Events;
-using Domain.Entities.Events.Parameters;
-using Domain.Enums;
-using Domain.Models.Pagination;
+using Events.Application.Models;
+using Events.Domain.Entities.Events;
+using Events.Domain.Entities.Events.Parameters;
+using Events.Domain.Models.Pagination;
+using EventServiceAPI.IntegrationTests.Fixtures;
 using FluentAssertions;
-using IntegrationTests.Fixtures;
 
-namespace IntegrationTests;
+namespace EventServiceAPI.IntegrationTests;
 
 public class EventRepositoryTest : IntegrationTestBase
 {
@@ -114,43 +113,6 @@ public class EventRepositoryTest : IntegrationTestBase
     }
 
     [Fact]
-    public async Task CreateBooking_WithValidEvent_SaveBooking()
-    {
-        var eventEntity = Event.Create(_eventParameter);
-        var userId = await CreateAndSaveUserAsync();
-
-        EventRepository.Add(eventEntity);
-        eventEntity.TryReserveSeats();
-        var booking = EventRepository.CreateBooking(eventEntity, userId);
-
-        await EventRepository.SaveChangesAsync(CancellationToken.None);
-
-        var retrieved = await BookingRepository.GetByIdAsync(booking.Id, CancellationToken.None);
-
-        retrieved.Should().NotBeNull();
-        retrieved.Id.Should().Be(booking.Id);
-        retrieved.EventId.Should().Be(eventEntity.Id);
-        retrieved.Status.Should().Be(BookingStatus.Pending);
-    }
-
-    [Fact]
-    public async Task GetEvent_WithIncludeBookings_ReturnsEventWithIncludeBookings()
-    {
-        var eventEntity = Event.Create(_eventParameter);
-        var userId = await CreateAndSaveUserAsync();
-
-        EventRepository.Add(eventEntity);
-        eventEntity.TryReserveSeats();
-        EventRepository.CreateBooking(eventEntity, userId);
-
-        await EventRepository.SaveChangesAsync(CancellationToken.None);
-
-        var retrieved = await EventRepository.GetByIdWithIncludeBookingsAsync(eventEntity.Id, CancellationToken.None);
-
-        retrieved.Bookings.Should().NotBeNull();
-    }
-
-    [Fact]
     public async Task Remove_ExistingEvent_DeletesFromDatabase()
     {
         var eventEntity = await CreateAndSaveEventAsync();
@@ -162,14 +124,6 @@ public class EventRepositoryTest : IntegrationTestBase
             .Invoking(() => EventRepository.GetByIdAsync(eventEntity.Id, CancellationToken.None))
             .Should()
             .ThrowAsync<KeyNotFoundException>();
-    }
-
-    private async Task<Event> CreateAndSaveEventAsync()
-    {
-        var eventEntity = Event.Create(_eventParameter);
-        EventRepository.Add(eventEntity);
-        await EventRepository.SaveChangesAsync(CancellationToken.None);
-        return eventEntity;
     }
 
     [Fact]
@@ -220,6 +174,14 @@ public class EventRepositoryTest : IntegrationTestBase
         page1Ids.Should().NotIntersectWith(page2Ids);
         page2Ids.Should().NotIntersectWith(page3Ids);
         page1Ids.Should().NotIntersectWith(page3Ids);
+    }
+
+    private async Task<Event> CreateAndSaveEventAsync()
+    {
+        var eventEntity = Event.Create(_eventParameter);
+        EventRepository.Add(eventEntity);
+        await EventRepository.SaveChangesAsync(CancellationToken.None);
+        return eventEntity;
     }
 
     private async Task CreateEventCollectionAsync()
