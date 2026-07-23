@@ -5,7 +5,7 @@ using Bookings.Domain.Enums;
 
 namespace Bookings.Application.Services;
 
-internal sealed class AccessService(ICurrentUserService currentUserService) : IAccessService
+public sealed class AccessService(ICurrentUserService currentUserService) : IAccessService
 {
     public bool IsCurrentUserHasAccessToBooking(Booking booking)
     {

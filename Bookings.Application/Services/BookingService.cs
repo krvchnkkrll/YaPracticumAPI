@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Bookings.Application.Services;
 
-internal sealed class BookingService(
+public sealed class BookingService(
     IBookingRepository bookingRepository,
     ICurrentUserService currentUserService,
     IBookingEventPublisher bookingEventPublisher,
