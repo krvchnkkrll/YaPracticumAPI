@@ -1,241 +1,145 @@
 # YaPracticumApi
-## REST API для управления событиями
 
-## Требования
-- .NET 9 SDK
-- PostgreSQL
+REST API для управления событиями
 
-Перед запуском необходимо указать строку подключения к PostgreSQL. В файле Presentation/appsettings.json
-```json
-{
-  "ConnectionStrings": {
-    "Postgres": "Host=localhost;Port=5432;Database=eventapi;Username=postgres;Password=postgres"
-  }
-}
+## Микросевисы
+
+| Сервис       | БД            | Порты в докере |     Порты локальные      |
+|--------------|---------------|:--------------:|:------------------------:|
+| **Users**    | `users_db`    |      8081      | `https://localhost:8081` |
+| **Events**   | `events_db`   |      8082      | `https://localhost:8082` |
+| **Bookings** | `bookings_db` |      8083      | `https://localhost:8083` |
+
+Каждый сервис построен по чистой архитектуре. Общий контракт события и имена топиков вынесены в отдельный проект.
+
+## Брокер сообщений
+
+В качестве брокера сообщений используется Kafka. Топики создаёт тот сервис, который на них подписан (иначе при первом запуске на пустом брокере подписчик может не найти топик).
+
+### `booking-confirmed`
+
+- **Publisher:** Bookings. Фоновый `BookingProcessingBackgroundService` каждые 5 секунд забирает все брони со статусом `Pending`, переводит бронь в `Confirmed`, сохраняет в свою БД — и только после успешного сохранения публикует `BookingConfirmedEvent` (`BookingId`, `EventId`, `UserId`, `SeatsCount`, `ConfirmedAt`). Ключ сообщения — `EventId`.
+- **Consumer:** Events, `KafkaBookingConfirmedConsumerWorker`. На каждое сообщение находит событие по `EventId`, уменьшает `AvailableSeats` (`TryReserveSeats`).
+
+### `booking-cancelled`
+
+- **Publisher:** Bookings, при отмене подтверждённой брони — после того как статус `Cancelled` сохранён в БД.
+- **Consumer:** Events, `KafkaBookingCancelledConsumerWorker`. Возвращает место обратно (`ReleaseSeats`).
+
+## Авторизация
+
+Jwt Токен выдаётся в UsersServiceAPI (`POST /auth/login`). EventsServiceAPI и BookingsServiceAPI проверяют — секрет, издателя `BookingApi` и аудиторию `BookingApiClient`.
+
+- `[Authorize(Roles = "Admin")]` — `POST`/`PUT`/`DELETE /api/events`.
+- Обычная аутентификация — эндпоинты броней; `UserId` читается из claims (`ICurrentUserService`).
+- Доступ к чужой брони (`GET`/`DELETE /api/bookings/{id}`) закрыт для всех, кроме владельца и `Admin` (`IAccessService`).
+
+## Запуск через Docker
+
+Поднимает одной командой Zookeeper, Kafka, Kafka UI, три отдельные PostgreSQL и три сервиса:
+
+```bash
+docker compose up -d
 ```
-**Примечание:** Схема базы данных управляется через миграции, добавленные миграции применяются автоматически при запуске приложения.
 
-В appsettings.json настраивается JWT:
-```json
-{
-  "Jwt": {
-    "Secret": "Q53LoLDRd6lEB3EZGF/1O3R08YC/VvEoqKiTANzSL9Q=",
-    "Issuer": "BookingApi",
-    "Audience": "BookingApiClient",
-    "Lifetime": 300
-  }
-}
+- Users: `http://localhost:8081/swagger`
+- Events: `http://localhost:8082/swagger`
+- Bookings: `http://localhost:8083/swagger`
+- Kafka UI: `http://localhost:8080`
+
+Строки подключения к БД и адрес Kafka переопределяются переменными окружения прямо в `compose.yaml` (`ConnectionStrings__Postgres`, `Kafka__BootstrapServers`, `Kafka__ConsumerGroup`). Миграции накатываются автоматически при старте каждого сервиса.
+
+## Запуск локально
+
+Требования: .NET 9 SDK, PostgreSQL (три базы — `users_db`, `events_db`, `bookings_db`), Kafka + Zookeeper.
+
+Для каждого сервиса в `*.Presentation/appsettings.json` уже прописаны локальные значения по умолчанию (`Host=localhost;Port=5432;...`, `Kafka:BootstrapServers = localhost:9092`).
+
+```bash
+dotnet run --project Users.Presentation
+dotnet run --project Events.Presentation
+dotnet run --project Bookings.Presentation
 ```
+## Тесты
 
-### Архитектура проекта
+В каждом микросервисе свой набор тестов: Unit и интеграционные.
 
-Решение разбито на четыре проекта по принципам чистой архитектуры:
-- **Domain** — ядро приложения: сущности, перечисления, доменные исключения.
-- **Application** — бизнес-логика и сценарии использования, DTO для обмена данными между слоями, а также интерфейсы.
-- **Infrastructure** — репозитории, конфигурации маппинга сущностей и миграции EF Core.
-- **Presentation** — точка входа, контроллеры и обработчик глобальных исключений, регистрация всех зависимостей.
+```bash
+dotnet test
+```
+- `Tests` — тесты сервисов Application-слоя через реальный DI-контейнер с `EFCore.InMemory` вместо PostgreSQL; для Bookings внешние зависимости (`ICurrentUserService`, `IBookingEventPublisher`) замоканы через Moq. Docker не требуется.
+- `IntegrationTests` — тесты репозиториев через `Testcontainers.PostgreSql` с PostgreSQL в Docker.
 
-### Сборка/запуск
+## Аутентификация и роли
 
-build: ```dotnet build```
+Две роли: `User` и `Admin`.
 
-run: ```dotnet run --project Presentation```
+- **Admin** — управляет событиями, может отменить любую бронь.
+- **User** — может бронировать события и отменять только свои брони.
 
-tests: ```dotnet test```
-
-create migration ```dotnet ef migrations add MigrationName --project Infrastructure --startup-project Presentation```
-
-apply migration ```dotnet ef database update --project Infrastructure --startup-project Presentation```
-
-**Тесты:** Включают себя тесты сервисов и интеграционные тесты репозиториев. 
-В тестовах сервисов используется InMemory-провайдер Entity Framework Core — PostgreSQL для запуска тестов не требуется.
-Для запуска тестов репозиториев требуется Docker.
-
-listening: ```https://localhost:7013```
-
-swagger: ```https://localhost:7013/swagger```
-
-### Аутентификация и роли
-
-В системе две роли: `User` и `Admin`.
-
-- **Admin** — управляет событиями и может отменить любую бронь.
-- **User** — может бронировать события и отменять только свои собственные брони.
-
-Алгоритм действий для получения токена:
-1. `POST /auth/register`, указав логин, пароль и опционально роль (дефолтно роль User)
-2. `POST /auth/login` с тем же логином и паролем и в ответе придёт JWT-токен.
-3. В **Authorize** указать полученный токен.
-
+Алгоритм получения токена:
+1. `POST /auth/register` (Users) — логин, пароль и опционально роль (по умолчанию `User`).
+2. `POST /auth/login` (Users) — тот же логин/пароль, в ответе JWT-токен.
+3. Указать токен в `Authorize` — в Swagger любого из трёх сервисов.
 
 **Разграничение доступа:**
 
-| Эндпоинт                                                              | Доступ                                 |
-|-----------------------------------------------------------------------|----------------------------------------|
-| `POST /auth/register`, `POST /auth/login`                             | Без токена                             |
-| `GET /api/events`, `GET /api/events/{id}`                             | Без токена                             |
-| `POST /api/events`, `PUT /api/events/{id}`, `DELETE /api/events/{id}` | Только `Admin`                         |
-| `POST /api/events/{id}/book`                                          | Любой аутентифицированный пользователь |
-| `GET /api/bookings/{id}`                                              | Любой аутентифицированный пользователь |
-| `DELETE /api/bookings/{id}`                                           | Владелец брони или `Admin`             |
+| Эндпоинт                                                              | Сервис   | Доступ                                 |
+|-----------------------------------------------------------------------|----------|----------------------------------------|
+| `POST /auth/register`, `POST /auth/login`                             | Users    | Без токена                             |
+| `GET /api/events`, `GET /api/events/{id}`                             | Events   | Без токена                             |
+| `POST /api/events`, `PUT /api/events/{id}`, `DELETE /api/events/{id}` | Events   | Только `Admin`                         |
+| `POST /api/bookings/{id}/book`                                        | Bookings | Любой аутентифицированный пользователь |
+| `GET /api/bookings/{id}`                                              | Bookings | Владелец брони или `Admin`             |
+| `DELETE /api/bookings/{id}`                                           | Bookings | Владелец брони или `Admin`             |
 
-### API
+## Модели
 
-- `POST /auth/register` - регистрирует пользователя.
+### Event (Events)
+- `Id`, `Title`, `Description?`, `StartAt`, `EndAt`, `TotalSeats`, `AvailableSeats`
 
-  Тело запроса: `login`, `password`, `role` (необязательно, `User` по умолчанию).
-  Возможные ответы:
+### User (Users)
+- `Id`, `Login` (уникален), `PasswordHash` (SHA-256), `Role`
 
-  | Код             | Описание                             |
-  |-----------------|--------------------------------------|
-  | 204 No Content  | Пользователь успешно зарегистрирован |
-  | 400 Bad Request | Логин уже занят / ошибка валидации   |
-
-- `POST /auth/login` - принимает `login`/`password`, возвращает JWT-токен строкой.
-
-  Возможные ответы:
-
-  | Код           | Описание                  |
-  |---------------|---------------------------|
-  | 200 OK        | Возвращён JWT-токен       |
-  | 404 Not Found | Неверный логин или пароль |
-
-- GET /api/events - возвращает пагинированную коллекцию событий.
-
-**Query-параметры**
-
-  | Параметр   | Обязательный | Описание                                             |
-  |------------|:------------:|------------------------------------------------------|
-  | `page`     |     нет      | Номер страницы (Дефолтное значение 1).               |
-  | `pageSize` |     нет      | Размер страницы (Дефолтное значение 10).             |
-  | `title`    |     нет      | Фильтр по подстроке в названии (без учёта регистра). |
-  | `from`     |     нет      | События с `StartAt` не раньше этой даты/времени.     |
-  | `to`       |     нет      | События с `EndAt` не позже этой даты/времени.        |
-
-- GET /api/events/{id} - возвращает событие
-- POST /api/events - создает и возвращает событие. Требует роль `Admin`.
-- PUT /api/events/{id} - изменяет и возвращает событие. Требует роль `Admin`.
-- DELETE /api/events/{id} - удаляет событие. Требует роль `Admin`.
-
-  Возможные ответы для POST/PUT/DELETE:
-
-  | Код              | Описание                            |
-  |------------------|-------------------------------------|
-  | 401 Unauthorized | Запрос без токена                   |
-  | 403 Forbidden    | Токен принадлежит не-администратору |
-
-- POST /api/events/{id}/book - создает и возвращает бронь. Требует аутентификации.
-  Возможные ответы:
-
-| Код              | Описание                                            |
-|------------------|-----------------------------------------------------|
-| 202 Accepted     | Бронь успешно создана                               |
-| 400 Bad Request  | Событие уже началось                                |
-| 401 Unauthorized | Запрос без токена                                   |
-| 404 Not Found    | Событие не найдено                                  |
-| 409 Conflict     | Свободные места закончились / превышен лимит броней |
-
-- GET /api/bookings/{id} - возвращает бронь. Требует аутентификации.
-
-  | Код              | Описание          |
-  |------------------|-------------------|
-  | 200 OK           | Бронь найдена     |
-  | 401 Unauthorized | Запрос без токена |
-  | 404 Not Found    | Бронь не найдена  |
-
-- DELETE /api/bookings/{id} - отменяет бронь. Требует аутентификации. 
-
-  | Код              | Описание                                      |
-  |------------------|-----------------------------------------------|
-  | 204 No Content   | Бронь отменена                                |
-  | 401 Unauthorized | Запрос без токена                             |
-  | 403 Forbidden    | Попытка отменить чужую бронь без роли `Admin` |
-  | 404 Not Found    | Бронь не найдена                              |
-
-### Формат ошибок
-```
-{
-  "title": "", - Название ошибки
-  "status": 404, - Статус код ошибки
-  "detail": "" - Текстовое описание ошибки
-}
-```
-### Event
-
-- Id (Guid) - Идентификатор события
-- Title (string) - Название события
-- Description (string?) - Описание события
-- StartAt (DateTime) - Время начала события
-- EndAt (DateTime) - Время окончания события
-- TotalSeats (int) - Общее количество мест на событии
-- AvailableSeats (int) - Количество свободных мест для бронирования
-
-### Booking
-
-- Id (Guid) - Идентификатор
-- EventId (Guid) - Внешний ключ событий
-- UserId (Guid) - Внешний ключ пользователя, создавшего бронь
-- Status (BookingStatus) - Статус брони
-- CreatedAt (DateTime) - Время создание брони
-- ProcessedAt (DateTime?) - Завершение обработки брони
+### Booking (Bookings)
+- `Id`, `EventId`, `UserId`, `Status`, `CreatedAt`, `ProcessedAt?`
 
 ### BookingStatus
-1. Pending. Бронь создана
-2. Confirmed. Бронь подтверждена
-3. Rejected. Бронь отклонена
-4. Cancelled. Бронь отменена
+1. `Pending` — бронь создана
+2. `Confirmed` — подтверждена фоновой обработкой в Bookings, место в Events зарезервировано
+3. `Rejected` — используется только при внутренней ошибке обработки в самом Bookings.
+4. `Cancelled` — отменена владельцем/админом; если бронь была `Confirmed`, место в Events освобождается через `booking-cancelled`
 
-### User
+## Доменные правила
 
-- Id (Guid) - Идентификатор
-- Login (string) - Логин, уникален
-- PasswordHash (string) - Хеш пароля (SHA-256), пароль в открытом виде не хранится
-- Role (UserRoleEnum) - Роль: `User` или `Admin`
-
-### Доменные правила бронирования
-
-- Нельзя забронировать место на событие, которое уже началось.
-- У одного пользователя не может быть больше 10 активных броней одновременно.
-- Отменить бронь может либо её владелец, либо администратор.
+- У одного пользователя не может быть больше 10 активных (`Pending`/`Confirmed`) броней одновременно (Bookings, `BookingLimitExceededException` → 409).
+- Нельзя зарезервировать место на уже начавшемся событии или при нехватке мест — эта проверка выполняется в Events асинхронно, в момент обработки `booking-confirmed`.
+- Отменить бронь может только её владелец или `Admin` (403 иначе).
 - Повторная отмена уже отменённой брони не приводит к ошибке.
 
+## Формат ошибок
 
-### BookingProcessingBackgroundService
-Описание: 
-1) Каждые 5 секунд из памяти берутся все записи о брони со статусом Pending.
-2) Имитация работы внешнего сервиса (2 секунды).
-3) Фоновая задача изменит статус брони на Confirmed.
+Единый для всех трёх сервисов:
+```json
+{
+  "title": "",
+  "status": 404,
+  "detail": ""
+}
+```
 
+## Пример сценария целиком
 
-### Сценарий использования
-1. Зарегистрировать администратора POST /auth/register с ролью `Admin`.
-2. Получить токен POST /auth/login и авторизоваться им в Swagger.
-3. Создать мероприятие POST /api/events (от имени администратора).
-4. Зарегистрировать обычного пользователя POST /auth/register (роль по умолчанию `User`), получить его токен через POST /auth/login и авторизоваться им.
-5. Создать бронь POST /api/events/{id}/book, {Id} заменить на
-полученный идентификатор события после его создания.
-6. Получить созданную бронь GET /api/bookings/{id}, {Id} заменить на
-полученный идентификатор брони после его создания. Статус брони Pending.
-7. Через 10 секунд еще раз. Статус брони Confirmed.
-8. Отменить бронь DELETE /api/bookings/{id} — под токеном владельца брони либо администратора.
+1. `POST /auth/register` (Users) с ролью `Admin` → `POST /auth/login` → токен админа.
+2. `POST /auth/register` (Users) обычным пользователем → токен пользователя.
+3. `POST /api/events` (Events, токен админа) — создать событие, запомнить `Id` и `AvailableSeats`.
+4. `POST /api/bookings/{eventId}/book` (Bookings, токен пользователя) — бронь создаётся со статусом `Pending`.
+5. Через 5–10 секунд `GET /api/bookings/{id}` — статус `Confirmed`.
+6. `GET /api/events/{id}` (Events) — `AvailableSeats` уменьшилось на 1. Это доказывает, что событие прошло через Kafka, а не через прямой вызов.
+7. `DELETE /api/bookings/{id}` (Bookings) — бронь `Cancelled`, `AvailableSeats` в Events возвращается обратно.
 
+P.S
+1) В задании нет, но не обработан кейс: Если бронь создается на событие, которого уже нет или событие уже началось.
+2) В задании не было, но я на автомате сделал для `booking-cancelled` отмену.
 
-### Пример сценария с овербукингом
-
-Дано:
-
-- Событие с TotalSeats = 5.
-- Одновременно поступает 20 запросов на бронирование.
-
-Результат:
-
-- 5 запросов успешно создают бронь.
-- 15 запросов получают ошибку 409 Conflict.
-- AvailableSeats становится равным 0.
-
-Таким образом система гарантирует, что количество созданных броней никогда не превышает вместимость события.
-
-P.S.
-1) Нейминг таблиц и полей не делал через Fluent API, т.к. считаю лучше это сделать в DI глобально для всех таблиц.
-2) По старом спринту в BackgroundService требовалась проверка на то, что у брони может отсутствовать мероприятие, 
-но это условие никогда не будет выполнено, т.к. бронь не может существовать без мероприятия, но оставил.
+Может быть это планировалось в следующем спринте поэтому 1 пункт я не делал, а второй я уже ревертить не стал.

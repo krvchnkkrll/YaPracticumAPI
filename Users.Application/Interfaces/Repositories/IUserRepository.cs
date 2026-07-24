@@ -1,0 +1,18 @@
+using Users.Domain.Users;
+
+namespace Users.Application.Interfaces.Repositories;
+
+public interface IUserRepository
+{
+    /// <summary>
+    ///     Создать пользователя
+    /// </summary>
+    void Add(User user);
+    
+    /// <summary>
+    ///     Получить пользователя по логину
+    /// </summary>
+    Task<User?> GetByLoginAsync(string login, CancellationToken token);
+
+    Task SaveChangesAsync(CancellationToken token);
+}
