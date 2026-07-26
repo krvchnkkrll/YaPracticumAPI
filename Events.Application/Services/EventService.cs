@@ -139,5 +139,7 @@ public sealed class EventService(
         eventRepository.Remove(eventEntity);
         
         await eventRepository.SaveChangesAsync(cancellationToken);
+        
+        await eventCached.RemoveCachedEventAsync(eventId);
     }
 }
