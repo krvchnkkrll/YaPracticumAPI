@@ -87,7 +87,7 @@ dotnet test
 | Эндпоинт                                                              | Сервис   | Доступ                                 |
 |-----------------------------------------------------------------------|----------|----------------------------------------|
 | `POST /auth/register`, `POST /auth/login`                             | Users    | Без токена                             |
-| `GET /api/events`, `GET /api/events/{id}`                             | Events   | Без токена                             |
+| `GET /api/events`, `GET /api/events/{id}`, `GET /api/events/top`      | Events   | Без токена                             |
 | `POST /api/events`, `PUT /api/events/{id}`, `DELETE /api/events/{id}` | Events   | Только `Admin`                         |
 | `POST /api/bookings/{id}/book`                                        | Bookings | Любой аутентифицированный пользователь |
 | `GET /api/bookings/{id}`                                              | Bookings | Владелец брони или `Admin`             |
