@@ -26,6 +26,34 @@ REST API для управления событиями
 - **Publisher:** Bookings, при отмене подтверждённой брони — после того как статус `Cancelled` сохранён в БД.
 - **Consumer:** Events, `KafkaBookingCancelledConsumerWorker`. Возвращает место обратно (`ReleaseSeats`).
 
+## Кеширование (Redis)
+
+В Events-сервисе используется Redis для кеширования. 
+Клиент Redis `IConnectionMultiplexer` регистрируется в DI как singleton т.к. является потокобезопасным и тяжелым.
+
+### Что кешируется и почему
+
+| Ключ           | Что                      |   TTL   | Прична                                 |
+|----------------|--------------------------|:-------:|----------------------------------------|
+| `event:{id}`   | Событие                  | 300 сек | Часто запрашиваемые одиночные события; |
+| `events:top10` | Коллекция из топ событий | 600 сек | Агрегат и содержит вычисления          |
+
+TTL по умолчанию берётся из `appsettings.json` (`Redis:EventTtlSeconds` / `Redis:TopEventsTtlSeconds`), при желании его можно переопределить переменной окружения (`Redis__EventTtlSeconds`).
+
+### Инвалидация при изменении данных
+
+Для запроса получения события выбрана инвалидация: при изменении события ключ просто удаляется, а не пишется заново. Следующий запрос сам берет из БД данные и прогреет кеш.
+
+Событие меняется не только через `PUT`/`DELETE`, но и через Kafka. Поэтому инвалидация добавлена в четыре места: `UpdateEventAsync`, `DeleteEventAsync` и в консьюмеры `KafkaBookingConfirmedConsumerWorker`, `KafkaBookingCancelledConsumerWorker`.
+
+Везде порядок один: сначала сохраняем в БД, и только потом чистим кеш. Если запрос на инвалидацию падает, то основной поток не будет заблокирован.
+
+Получение популярных событий не инвалидируется при каждой брони. Запрос не является критически важным и не будет серьезных проблем с тем, что данные отстают на некоторое время. Поэтому для него достаточно TTL.
+
+### Устойчивость к недоступности Redis
+
+Все обращения к Redis обёрнуты в try/catch блоки, а ошибки логируются. Подключение делается с выключенным AbortOnConnectFail, поэтому сервис не падает при старте, даже если Redis временно недоступен.
+
 ## Авторизация
 
 Jwt Токен выдаётся в UsersServiceAPI (`POST /auth/login`). EventsServiceAPI и BookingsServiceAPI проверяют — секрет, издателя `BookingApi` и аудиторию `BookingApiClient`.
@@ -36,7 +64,7 @@ Jwt Токен выдаётся в UsersServiceAPI (`POST /auth/login`). EventsS
 
 ## Запуск через Docker
 
-Поднимает одной командой Zookeeper, Kafka, Kafka UI, три отдельные PostgreSQL и три сервиса:
+Поднимает одной командой Zookeeper, Kafka, Kafka UI, Redis, три отдельные PostgreSQL и три сервиса:
 
 ```bash
 docker compose up -d
@@ -46,12 +74,13 @@ docker compose up -d
 - Events: `http://localhost:8082/swagger`
 - Bookings: `http://localhost:8083/swagger`
 - Kafka UI: `http://localhost:8080`
+- Redis: `localhost:6379`
 
-Строки подключения к БД и адрес Kafka переопределяются переменными окружения прямо в `compose.yaml` (`ConnectionStrings__Postgres`, `Kafka__BootstrapServers`, `Kafka__ConsumerGroup`). Миграции накатываются автоматически при старте каждого сервиса.
+Строки подключения к БД, Redis и адрес Kafka переопределяются переменными окружения прямо в `compose.yaml` (`ConnectionStrings__Postgres`, `ConnectionStrings__Redis`, `Kafka__BootstrapServers`, `Kafka__ConsumerGroup`). Внутри сети Docker сервисы обращаются друг к другу по имени контейнера, поэтому Events подключается к Redis как `redis:6379`, а не `localhost:6379`. Миграции накатываются автоматически при старте каждого сервиса.
 
 ## Запуск локально
 
-Требования: .NET 9 SDK, PostgreSQL (три базы — `users_db`, `events_db`, `bookings_db`), Kafka + Zookeeper.
+Требования: .NET 9 SDK, PostgreSQL (три базы — `users_db`, `events_db`, `bookings_db`), Kafka + Zookeeper, Redis (для Events; при ошибке на старте EventService сервис запустится и будет работать только с базой).
 
 Для каждого сервиса в `*.Presentation/appsettings.json` уже прописаны локальные значения по умолчанию (`Host=localhost;Port=5432;...`, `Kafka:BootstrapServers = localhost:9092`).
 
