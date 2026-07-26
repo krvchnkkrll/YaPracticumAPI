@@ -120,6 +120,8 @@ public sealed class EventService(
         
         await eventRepository.SaveChangesAsync(cancellationToken);
 
+        await eventCached.RemoveCachedEventAsync(eventId);
+
         return new UpdateEventResponse
         {
             Id = eventEntity.Id,
