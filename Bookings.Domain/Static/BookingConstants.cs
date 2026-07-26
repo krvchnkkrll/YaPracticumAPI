@@ -1,6 +1,6 @@
 namespace Bookings.Domain.Static;
 
-public static class BookingConstance
+public static class BookingConstants
 {
     public const int MaximumActiveUserBookings = 10;
 }

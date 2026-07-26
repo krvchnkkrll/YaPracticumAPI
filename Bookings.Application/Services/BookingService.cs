@@ -28,8 +28,8 @@ public sealed class BookingService(
 
         var activeUserBookings = await bookingRepository.GetCountUserActiveBookingsAsync(currentUserId, token);
 
-        if (activeUserBookings >= BookingConstance.MaximumActiveUserBookings)
-            throw new BookingLimitExceededException(BookingConstance.MaximumActiveUserBookings);
+        if (activeUserBookings >= BookingConstants.MaximumActiveUserBookings)
+            throw new BookingLimitExceededException(BookingConstants.MaximumActiveUserBookings);
         
         try
         {

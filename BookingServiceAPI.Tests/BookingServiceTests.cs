@@ -250,7 +250,7 @@ public sealed class BookingServiceTests
         using var scope = _serviceProvider.CreateScope();
         var service = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
-        for (var i = 0; i < BookingConstance.MaximumActiveUserBookings; i++)
+        for (var i = 0; i < BookingConstants.MaximumActiveUserBookings; i++)
             await service.CreateBookingAsync(eventId, CancellationToken.None);
 
         await FluentActions
@@ -268,7 +268,7 @@ public sealed class BookingServiceTests
         {
             var service = scope.ServiceProvider.GetRequiredService<IBookingService>();
 
-            for (var i = 0; i < BookingConstance.MaximumActiveUserBookings; i++)
+            for (var i = 0; i < BookingConstants.MaximumActiveUserBookings; i++)
                 await service.CreateBookingAsync(eventId, CancellationToken.None);
         }
 
