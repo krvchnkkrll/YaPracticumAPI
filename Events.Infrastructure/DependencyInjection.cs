@@ -1,4 +1,6 @@
+using Events.Application.Interfaces.Cache;
 using Events.Application.Interfaces.Repositories;
+using Events.Infrastructure.Cache;
 using Events.Infrastructure.Events;
 using Events.Infrastructure.Interfaces;
 using Events.Infrastructure.Models;
@@ -8,6 +10,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using StackExchange.Redis;
 
 namespace Events.Infrastructure;
 
@@ -18,6 +21,9 @@ public static class DependencyInjection
         var connectionString = builder.Configuration.GetConnectionString("Postgres");
         
         builder.Services.Configure<KafkaOptions>(builder.Configuration.GetRequiredSection("Kafka"));
+
+        builder.Services.Configure<RedisOptions>(builder.Configuration.GetRequiredSection("Redis"));
+        var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
         
         builder.Services.AddDbContextPool<AppDbContext>(options =>
         {
@@ -40,10 +46,17 @@ public static class DependencyInjection
                     npgsql.MigrationsHistoryTable(HistoryRepository.DefaultTableName);
                 });
         });
+        
+        var redisConfiguration = ConfigurationOptions.Parse(redisConnectionString!);
+        redisConfiguration.AbortOnConnectFail = false;
+
+        builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConfiguration));
+        builder.Services.AddSingleton<IDatabase>(provider => provider.GetRequiredService<IConnectionMultiplexer>().GetDatabase());
+        builder.Services.AddScoped<IEventsCached, EventsCached>();
 
         builder.Services.AddScoped<IDbContext>(
             provider => provider.GetRequiredService<AppDbContext>());
-        
+
         builder.Services.AddScoped<IEventRepository, EventRepository>();
         
         builder.Services.AddHostedService<KafkaTopicInitializerHostedService>();
