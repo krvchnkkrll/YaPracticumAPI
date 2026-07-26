@@ -52,7 +52,7 @@ public static class DependencyInjection
 
         builder.Services.AddSingleton<IConnectionMultiplexer>(ConnectionMultiplexer.Connect(redisConfiguration));
         builder.Services.AddSingleton<IDatabase>(provider => provider.GetRequiredService<IConnectionMultiplexer>().GetDatabase());
-        builder.Services.AddScoped<IEventsCached, EventsCached>();
+        builder.Services.AddScoped<IEventCached, EventCached>();
 
         builder.Services.AddScoped<IDbContext>(
             provider => provider.GetRequiredService<AppDbContext>());

@@ -9,15 +9,15 @@ using StackExchange.Redis;
 
 namespace Events.Infrastructure.Cache;
 
-public sealed class EventsCached(
+public sealed class EventCached(
     IDatabase database, 
     IOptions<RedisOptions> options, 
-    ILogger<EventsCached> logger) 
-    : IEventsCached
+    ILogger<EventCached> logger) 
+    : IEventCached
 {
     private readonly RedisOptions _options = options.Value;
 
-    public async Task<IEnumerable<Event>> GetCachedTopEventsAsync()
+    public async Task<Event[]> GetCachedTopEventsAsync()
     {
         try
         {
@@ -26,7 +26,7 @@ public sealed class EventsCached(
             if (!cached.HasValue)
                 return [];
 
-            return JsonSerializer.Deserialize<IEnumerable<Event>>(cached!) ?? [];
+            return JsonSerializer.Deserialize<Event[]>(cached!) ?? [];
         }
         catch (Exception ex)
         {

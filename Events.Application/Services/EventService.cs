@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Events.Application.Interfaces.Cache;
 using Events.Application.Interfaces.Repositories;
 using Events.Application.Interfaces.Services;
 using Events.Application.Models;
@@ -10,7 +11,8 @@ using static Events.Application.Common.Mappers.EventMappers;
 namespace Events.Application.Services;
 
 public sealed class EventService(
-    IEventRepository eventRepository) : IEventService
+    IEventRepository eventRepository,
+    IEventCached eventCached) : IEventService
 {
     private const int DefaultPageSize = 10;
     private const int DefaultPage = 1;
@@ -43,25 +45,30 @@ public sealed class EventService(
 
     public async Task<IEnumerable<GetEventResponse>> GetTopEventsAsync(CancellationToken cancellationToken)
     {
+        var cachedEvents = await eventCached.GetCachedTopEventsAsync();
+        
+        if (cachedEvents.Length > 0)
+            return cachedEvents.Select(ToEventResponse);
+
         var topEvents = await eventRepository.GetTopEventsAsync(cancellationToken);
+
+        await eventCached.CreateTopCacheEventsAsync(topEvents);
 
         return topEvents.Select(ToEventResponse);
     }
 
     public async Task<GetEventResponse> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        var eventEntity = await eventRepository.GetReadOnlyByIdAsync(eventId, cancellationToken);
+        var cachedEvent = await eventCached.GetCachedEventByIdAsync(eventId);
         
-        return new GetEventResponse
-        {
-            Id = eventEntity.Id,
-            Title = eventEntity.Title,
-            Description = eventEntity.Description,
-            StartAt = eventEntity.StartAt,
-            EndAt = eventEntity.EndAt,
-            TotalSeats = eventEntity.TotalSeats,
-            AvailableSeats = eventEntity.AvailableSeats
-        };
+        if (cachedEvent != null)
+            return ToEventResponse(cachedEvent);
+        
+        var @event = await eventRepository.GetByIdAsync(eventId, cancellationToken);
+        
+        await eventCached.CreateCacheEventAsync(@event);
+        
+        return ToEventResponse(@event);
     }
     
     public async Task<CreateEventResponse> CreateEventAsync(CreateEventRequest request, CancellationToken cancellationToken)

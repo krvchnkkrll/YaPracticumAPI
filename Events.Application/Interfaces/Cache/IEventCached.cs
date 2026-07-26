@@ -2,12 +2,12 @@ using Events.Domain.Entities.Events;
 
 namespace Events.Application.Interfaces.Cache;
 
-public interface IEventsCached
+public interface IEventCached
 {
     /// <summary>
     ///     Получить топ событий
     /// </summary>
-    Task<IEnumerable<Event>> GetCachedTopEventsAsync();
+    Task<Event[]> GetCachedTopEventsAsync();
 
     /// <summary>
     ///     Получить событие
