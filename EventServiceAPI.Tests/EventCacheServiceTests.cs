@@ -34,9 +34,9 @@ public sealed class EventCacheServiceTests
         result.Id.Should().Be(cachedEvent.Id);
         result.Title.Should().Be(cachedEvent.Title);
 
-        _eventRepository.Verify(repository => repository.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()));
+        _eventRepository.Verify(repository => repository.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
 
-        _eventCached.Verify(c => c.CreateCacheEventAsync(It.IsAny<Event>()));
+        _eventCached.Verify(c => c.CreateCacheEventAsync(It.IsAny<Event>()), Times.Never);
     }
 
     [Fact]
@@ -72,9 +72,9 @@ public sealed class EventCacheServiceTests
 
         result.Select(response => response.Id).Should().BeEquivalentTo(cachedEvents.Select(@event => @event.Id));
 
-        _eventRepository.Verify(repository => repository.GetTopEventsAsync(CancellationToken.None));
+        _eventRepository.Verify(repository => repository.GetTopEventsAsync(It.IsAny<CancellationToken>()), Times.Never);
 
-        _eventCached.Verify(cached => cached.CreateTopCacheEventsAsync(It.IsAny<IReadOnlyList<Event>>()));
+        _eventCached.Verify(cached => cached.CreateTopCacheEventsAsync(It.IsAny<IReadOnlyList<Event>>()), Times.Never);
     }
 
     [Fact]
