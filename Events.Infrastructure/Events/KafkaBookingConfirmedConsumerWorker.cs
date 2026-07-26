@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using Events.Application.Interfaces.Cache;
 using Events.Application.Interfaces.Repositories;
 using Events.Domain.Exceptions;
 using Events.Infrastructure.Models;
@@ -106,6 +107,7 @@ internal sealed class KafkaBookingConfirmedConsumerWorker(
 
         using var scope = scopeFactory.CreateScope();
         var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
+        var eventCached = scope.ServiceProvider.GetRequiredService<IEventCached>();
 
         var eventEntity = await eventRepository.GetByIdAsync(bookingConfirmedEvent.EventId, stoppingToken);
 
@@ -120,5 +122,7 @@ internal sealed class KafkaBookingConfirmedConsumerWorker(
         }
 
         await eventRepository.SaveChangesAsync(stoppingToken);
+
+        await eventCached.RemoveCachedEventAsync(bookingConfirmedEvent.EventId);
     }
 }
