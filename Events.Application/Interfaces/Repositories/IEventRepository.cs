@@ -15,6 +15,11 @@ public interface IEventRepository
     ///     Получить событие без отслеживания изменений.
     /// </summary>
     Task<Event> GetReadOnlyByIdAsync(Guid eventId, CancellationToken cancellationToken);
+    
+    /// <summary>
+    ///     Получить топ-10 событий по проценту проданных мест
+    /// </summary>
+    Task<IReadOnlyList<Event>> GetTopEventsAsync(CancellationToken cancellationToken);
 
     /// <summary>
     ///     Получить страницу событий без отслеживания изменений.

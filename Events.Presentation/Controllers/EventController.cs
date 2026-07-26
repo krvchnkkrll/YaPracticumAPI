@@ -36,6 +36,17 @@ public sealed class EventController(
     }
 
     /// <summary>
+    ///     Получить топ-10 событий
+    /// </summary>
+    [HttpGet("top")]
+    [ProducesResponseType(typeof(IEnumerable<GetEventResponse>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<GetEventResponse>>> GetTopEventsAsync(CancellationToken cancellationToken)
+    {
+        return Ok(await eventService.GetTopEventsAsync(cancellationToken));
+    }
+
+
+    /// <summary>
     ///     Создать событие
     /// </summary>
     [HttpPost]

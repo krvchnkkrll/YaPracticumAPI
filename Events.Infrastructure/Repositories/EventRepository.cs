@@ -22,6 +22,15 @@ public sealed class EventRepository(IDbContext context) : IEventRepository
         return eventToReturn;
     }
 
+    public async Task<IReadOnlyList<Event>> GetTopEventsAsync(CancellationToken cancellationToken)
+    {
+        return await context.Events
+            .AsNoTracking()
+            .OrderByDescending(e => (double)(e.TotalSeats - e.AvailableSeats) / e.TotalSeats)
+            .Take(10)
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<PaginatedResult<Event>> GetPaginatedAsync(GetEventsSearchQuery searchQuery,
         PaginationQuery paginationQuery,
         CancellationToken cancellationToken)

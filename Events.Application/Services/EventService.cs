@@ -5,10 +5,12 @@ using Events.Application.Models;
 using Events.Domain.Entities.Events;
 using Events.Domain.Entities.Events.Parameters;
 using Events.Domain.Models.Pagination;
+using static Events.Application.Common.Mappers.EventMappers;
 
 namespace Events.Application.Services;
 
-public sealed class EventService(IEventRepository eventRepository) : IEventService
+public sealed class EventService(
+    IEventRepository eventRepository) : IEventService
 {
     private const int DefaultPageSize = 10;
     private const int DefaultPage = 1;
@@ -26,16 +28,7 @@ public sealed class EventService(IEventRepository eventRepository) : IEventServi
 
         return new PaginatedResult<GetEventResponse>
         {
-            Items = paginatedEvents.Items.Select(e => new GetEventResponse
-            {
-                Id = e.Id,
-                Title = e.Title,
-                Description = e.Description,
-                StartAt = e.StartAt,
-                EndAt = e.EndAt,
-                TotalSeats = e.TotalSeats,
-                AvailableSeats = e.AvailableSeats
-            }).ToArray(),
+            Items = paginatedEvents.Items.Select(ToEventResponse).ToArray(),
             TotalItems = paginatedEvents.TotalItems,
             CurrentPage = paginatedEvents.CurrentPage,
             PageSize = paginatedEvents.PageSize,
@@ -46,6 +39,13 @@ public sealed class EventService(IEventRepository eventRepository) : IEventServi
     public async Task<IReadOnlyList<Event>> GetEventsAsync(CancellationToken cancellationToken)
     {
         return await eventRepository.GetAllAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<GetEventResponse>> GetTopEventsAsync(CancellationToken cancellationToken)
+    {
+        var topEvents = await eventRepository.GetTopEventsAsync(cancellationToken);
+
+        return topEvents.Select(ToEventResponse);
     }
 
     public async Task<GetEventResponse> GetEventByIdAsync(Guid eventId, CancellationToken cancellationToken)
