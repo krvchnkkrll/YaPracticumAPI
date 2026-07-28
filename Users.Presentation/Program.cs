@@ -1,4 +1,6 @@
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Formatting.Compact;
 using Users.Application;
 using Users.Infrastructure;
 using Users.Infrastructure.Interfaces;
@@ -6,6 +8,13 @@ using Users.Presentation;
 using Users.Presentation.Common.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .WriteTo.Console(new CompactJsonFormatter())
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.AddApplication();
 builder.AddInfrastructure();
@@ -33,5 +42,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapPrometheusScrapingEndpoint();
 
 app.Run();

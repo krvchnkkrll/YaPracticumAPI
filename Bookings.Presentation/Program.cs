@@ -4,8 +4,17 @@ using Bookings.Infrastructure.Interfaces;
 using Bookings.Presentation;
 using Bookings.Presentation.Common.Middleware;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Formatting.Compact;
 
 var builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .WriteTo.Console(new CompactJsonFormatter())
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 builder.AddApplication();
 builder.AddInfrastructure();
@@ -33,5 +42,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapPrometheusScrapingEndpoint();
 
 app.Run();
