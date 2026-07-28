@@ -85,7 +85,7 @@ docker compose up -d
 - **Трейсы** — входящие HTTP-запросы, исходящие HTTP-запросы и запросы к БД. Экспортируются по OTLP/gRPC в Jaeger, у каждого сервиса своё имя.
 - **Метрики** — latency, throughput, error rate и метрики рантайма .NET. Прокидываются через эндпоинт `/metrics` для каждого сервиса, откуда их забирает Prometheus.
 - **Логи** — через Serilog в консоли у каждого сервиса.
-- **Дашборд** — метрики latency p50/p95/p99, throughput RPS, error rate, active requests для всех сервисов в Grafana.
+- **Дашборд** — метрики latency p50/p95/p99, throughput RPS, error rate, active requests для events-service в Grafana.
 
 ### Запуск
 
