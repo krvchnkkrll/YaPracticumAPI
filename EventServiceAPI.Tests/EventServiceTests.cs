@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Events.Application.Interfaces.Cache;
 using Events.Application.Interfaces.Repositories;
 using Events.Application.Interfaces.Services;
 using Events.Application.Models;
@@ -12,6 +13,7 @@ using Events.Infrastructure.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 
 namespace EventServiceAPI.Tests;
 
@@ -37,6 +39,7 @@ public sealed class EventServiceTests
 
         services.AddScoped<IDbContext>(sp => sp.GetRequiredService<AppDbContext>());
         services.AddScoped<IEventRepository, EventRepository>();
+        services.AddSingleton(CreateAlwaysMissingCache());
         services.AddScoped<IEventService, EventService>();
 
         _serviceProvider = services.BuildServiceProvider();
@@ -369,6 +372,16 @@ public sealed class EventServiceTests
         var events = await context.Events.ToListAsync();
 
         return events;
+    }
+
+    private static IEventCached CreateAlwaysMissingCache()
+    {
+        var cache = new Mock<IEventCached>();
+
+        cache.Setup(c => c.GetCachedEventByIdAsync(It.IsAny<Guid>())).ReturnsAsync((Event?)null);
+        cache.Setup(c => c.GetCachedTopEventsAsync()).ReturnsAsync([]);
+
+        return cache.Object;
     }
 
     private static Event CreateEvent(string title, string? description, int dayOffset, int totalSeats)

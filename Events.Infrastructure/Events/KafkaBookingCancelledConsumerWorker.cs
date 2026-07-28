@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Confluent.Kafka;
+using Events.Application.Interfaces.Cache;
 using Events.Application.Interfaces.Repositories;
 using Events.Infrastructure.Models;
 using Kafka.Contracts.Constance;
@@ -105,11 +106,14 @@ internal sealed class KafkaBookingCancelledConsumerWorker(
 
         using var scope = scopeFactory.CreateScope();
         var eventRepository = scope.ServiceProvider.GetRequiredService<IEventRepository>();
+        var eventCached = scope.ServiceProvider.GetRequiredService<IEventCached>();
 
         var eventEntity = await eventRepository.GetByIdAsync(bookingCancelledEvent.EventId, stoppingToken);
 
         eventEntity.ReleaseSeats(bookingCancelledEvent.SeatsCount);
 
         await eventRepository.SaveChangesAsync(stoppingToken);
+
+        await eventCached.RemoveCachedEventAsync(bookingCancelledEvent.EventId);
     }
 }

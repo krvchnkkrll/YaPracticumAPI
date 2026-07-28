@@ -16,6 +16,11 @@ public interface IEventService
     ///     Получить все события
     /// </summary>
     Task<IReadOnlyList<Event>> GetEventsAsync(CancellationToken cancellationToken);
+    
+    /// <summary>
+    ///     Получить топ-10 событий по проценту проданных мест
+    /// </summary>
+    Task<IEnumerable<GetEventResponse>> GetTopEventsAsync(CancellationToken cancellationToken);
 
     /// <summary>
     ///     Получить событие
