@@ -1,10 +1,14 @@
 using System.Text;
 using System.Text.Json.Serialization;
 using Bookings.Application.Interfaces.Identity;
+using Bookings.Presentation.Common.Options;
 using Bookings.Presentation.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using OpenTelemetry.Metrics;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
 
 namespace Bookings.Presentation;
 
@@ -12,6 +16,8 @@ public static class DependencyInjection
 {
     public static void AddPresentation(this IHostApplicationBuilder builder)
     {
+        var openTelemetryOptions = builder.Configuration.GetRequiredSection("OpenTelemetry").Get<OpenTelemetryOptions>();
+        
         builder.Services.AddControllers()
             .AddJsonOptions(options =>
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -41,6 +47,18 @@ public static class DependencyInjection
             });
 
         builder.Services.AddAuthorization();
+        
+        builder.Services.AddOpenTelemetry()
+            .WithTracing(tracing => tracing
+                .AddAspNetCoreInstrumentation()
+                .AddHttpClientInstrumentation()
+                .AddEntityFrameworkCoreInstrumentation()
+                .AddOtlpExporter(options => options.Endpoint = new Uri(openTelemetryOptions!.Url)))
+            .WithMetrics(metrics => metrics
+                .AddAspNetCoreInstrumentation()
+                .AddRuntimeInstrumentation()
+                .AddPrometheusExporter())
+            .ConfigureResource(r => r.AddService(serviceName: "bookings-service"));
 
         builder.Services.AddSwaggerGen(options =>
         {

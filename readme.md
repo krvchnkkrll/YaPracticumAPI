@@ -78,6 +78,25 @@ docker compose up -d
 
 Строки подключения к БД, Redis и адрес Kafka переопределяются переменными окружения прямо в `compose.yaml` (`ConnectionStrings__Postgres`, `ConnectionStrings__Redis`, `Kafka__BootstrapServers`, `Kafka__ConsumerGroup`). Внутри сети Docker сервисы обращаются друг к другу по имени контейнера, поэтому Events подключается к Redis как `redis:6379`, а не `localhost:6379`. Миграции накатываются автоматически при старте каждого сервиса.
 
+## Наблюдаемость
+
+Во всех сервисах используется OpenTelemetry:
+
+- **Трейсы** — входящие HTTP-запросы, исходящие HTTP-запросы и запросы к БД. Экспортируются по OTLP/gRPC в Jaeger, у каждого сервиса своё имя.
+- **Метрики** — latency, throughput, error rate и метрики рантайма .NET. Прокидываются через эндпоинт `/metrics` для каждого сервиса, откуда их забирает Prometheus.
+- **Логи** — через Serilog в консоли у каждого сервиса.
+- **Дашборд** — метрики latency p50/p95/p99, throughput RPS, error rate, active requests для events-service в Grafana.
+
+### Запуск
+
+Prometheus, Jaeger и Grafana поднимаются вместе с остальными сервисами через docker-compose.yaml.
+
+| Инструмент | UI                       | Порт(ы)                                         |
+|------------|--------------------------|-------------------------------------------------|
+| Prometheus | `http://localhost:9090`  | `9090`                                          |
+| Jaeger     | `http://localhost:16686` | `16686` - UI, `4317` (OTLP gRPC, приём трейсов) |
+| Grafana    | `http://localhost:3000`  | `3000`                                          |
+
 ## Запуск локально
 
 Требования: .NET 9 SDK, PostgreSQL (три базы — `users_db`, `events_db`, `bookings_db`), Kafka + Zookeeper, Redis (для Events; при ошибке на старте EventService сервис запустится и будет работать только с базой).
